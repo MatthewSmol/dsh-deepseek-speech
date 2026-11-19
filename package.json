@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "DeepSeek ASR, Edge/DeepSeek TTS, and an MCP service with a Vue 3 + Tailwind sidebar for Telegram voice messages.",
+  "description": "DeepSeek ASR, Edge/DeepSeek TTS, and an MCP service with a Vue 3 sidebar (scoped CSS) for Telegram voice messages.",
   "exports": {
     ".": "./dist/index.js",
     "./client": "./dist/client.js",
@@ -12,10 +12,7 @@
   },
   "files": [
     "dist/**/*.js",
-    "dist/client.css",
     "src/**/*.ts",
-    "src/tailwind.css",
-    "tailwind.config.cjs",
     "vite.config.ts",
     "tsconfig.json",
     "tsconfig.client.json",
@@ -50,16 +47,14 @@
   },
   "devDependencies": {
     "@types/node": "^22.20.5",
-    "tailwindcss": "^3.4.19",
     "typescript": "^5.9.3",
     "vite": "^7.3.8"
   },
   "main": "./dist/index.js",
   "scripts": {
-    "build": "npm run build-css && tsc -p tsconfig.json && tsc -p tsconfig.client.json --noEmit && npm run build-client && node scripts/sync-compat.mjs",
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.client.json --noEmit && npm run build-client && node scripts/sync-compat.mjs",
     "check": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.client.json --noEmit",
     "test": "npm run build && node --test test/*.test.mjs",
-    "build-css": "tailwindcss -c tailwind.config.cjs -i src/tailwind.css -o dist/client.css --minify",
     "build-client": "vite build --config vite.config.ts"
   }
 }

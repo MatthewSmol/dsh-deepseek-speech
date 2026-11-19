@@ -29,20 +29,6 @@ export const SpeechApp = defineComponent({
     const installInfo = ref<any>(null)
     let pollTimer: ReturnType<typeof setInterval> | null = null
 
-    const TW = {
-      card: 'dss-rounded-2xl dss-border dss-border-[var(--dsw-alias-border-l2)] dss-bg-[var(--dsw-alias-bg-layer-1)] dss-p-5 dss-shadow-sm dss-space-y-3',
-      title: 'dss-text-sm dss-font-semibold dss-leading-5 dss-text-[var(--dsw-alias-label-primary)]',
-      hint: 'dss-text-xs dss-leading-5 dss-text-[var(--dsw-alias-label-secondary)]',
-      label: 'dss-block dss-text-xs dss-font-medium dss-leading-5 dss-text-[var(--dsw-alias-label-secondary)]',
-      input: 'dss-w-full dss-rounded-lg dss-border dss-border-[var(--dsw-alias-border-l2)] dss-bg-[var(--dsw-alias-bg-layer-2)] dss-px-3 dss-py-2 dss-text-sm dss-text-[var(--dsw-alias-label-primary)] dss-outline-none focus:dss-ring-2 focus:dss-ring-[var(--dsw-alias-brand-primary)]',
-      select: 'dss-w-full dss-rounded-lg dss-border dss-border-[var(--dsw-alias-border-l2)] dss-bg-[var(--dsw-alias-bg-layer-2)] dss-px-3 dss-py-2 dss-text-sm dss-text-[var(--dsw-alias-label-primary)] dss-outline-none focus:dss-ring-2 focus:dss-ring-[var(--dsw-alias-brand-primary)]',
-      button: 'dss-inline-flex dss-items-center dss-justify-center dss-rounded-lg dss-px-3 dss-py-2 dss-text-xs dss-font-medium dss-leading-5 dss-transition disabled:dss-cursor-not-allowed disabled:dss-opacity-50',
-      primary: 'dss-bg-[var(--dsw-alias-brand-primary)] dss-text-[var(--dsw-alias-bg-base)] hover:dss-opacity-90',
-      secondary: 'dss-border dss-border-[var(--dsw-alias-border-l2)] dss-bg-[var(--dsw-alias-bg-layer-2)] dss-text-[var(--dsw-alias-label-primary)] hover:dss-bg-[var(--dsw-alias-bg-layer-3)]',
-      check: 'dss-flex dss-items-start dss-gap-2.5 dss-rounded-lg dss-border dss-border-[var(--dsw-alias-border-l2)] dss-bg-[var(--dsw-alias-bg-layer-2)] dss-p-3',
-      checkbox: 'dss-mt-0.5 dss-h-4 dss-w-4 dss-shrink-0 dss-accent-[var(--dsw-alias-brand-primary)]',
-    }
-
     const settings = computed(() => form.value || status.value?.settings || {})
     const deps = computed(() => status.value?.deps)
     const route = computed(() => status.value?.route)
@@ -223,7 +209,7 @@ export const SpeechApp = defineComponent({
 
     return {
       t, surface, status, history, form, tab, filter, error, notice, busy, keyDraft, installInfo,
-      settings, deps, route, keyState, edge, mcp, totals, entries, TW,
+      settings, deps, route, keyState, edge, mcp, totals, entries,
       load, saveKey, deleteKey, setSetting, saveForm, checkDeps, installFfmpeg, clearHistory,
       testVoice, copyCommand, fmtDuration, fmtDate, fmtCost, qualityText, sourceText, providerText,
     }
@@ -292,104 +278,104 @@ export const SpeechApp = defineComponent({
           <div class="dss-foot">{{ t('historyNote') }}</div>
         </template>
 
-        <div v-if="surface === 'settings' || (surface === 'main' && tab === 'settings')" class="dss-flex dss-flex-col dss-gap-4">
-          <div :class="TW.card">
-            <h2 :class="TW.title">{{ t('apiKey') }}</h2>
-            <p :class="TW.hint">{{ t('apiKeyHint') }}</p>
-            <div class="dss-flex dss-flex-col dss-gap-2 sm:dss-flex-row">
-              <input v-model="keyDraft" :class="TW.input" type="password" autocomplete="off" spellcheck="false" :placeholder="keyState?.configured ? '•••••••• (' + t('configured') + ')' : 'sk-…'" />
-              <div class="dss-flex dss-flex-wrap dss-gap-2">
-                <button :class="TW.button + ' ' + TW.primary" type="button" :disabled="!!busy" @click="saveKey">{{ t('save') }}</button>
-                <button v-if="keyState?.configured" :class="TW.button + ' ' + TW.secondary" type="button" :disabled="!!busy" @click="deleteKey">{{ t('delete') }}</button>
+        <div v-if="surface === 'settings' || (surface === 'main' && tab === 'settings')" class="settings-stack">
+          <div class="settings-card">
+            <h2 class="settings-title">{{ t('apiKey') }}</h2>
+            <p class="settings-hint">{{ t('apiKeyHint') }}</p>
+            <div class="settings-key-row">
+              <input v-model="keyDraft" class="settings-input" type="password" autocomplete="off" spellcheck="false" :placeholder="keyState?.configured ? '•••••••• (' + t('configured') + ')' : 'sk-…'" />
+              <div class="settings-actions">
+                <button class="settings-button settings-button-primary" type="button" :disabled="!!busy" @click="saveKey">{{ t('save') }}</button>
+                <button v-if="keyState?.configured" class="settings-button settings-button-secondary" type="button" :disabled="!!busy" @click="deleteKey">{{ t('delete') }}</button>
               </div>
             </div>
-            <div :class="keyState?.configured ? 'dss-text-xs dss-leading-5 dss-text-[var(--dsw-alias-state-success-primary)]' : 'dss-text-xs dss-leading-5 dss-text-[var(--dsw-alias-state-warn-primary)]'">
+            <div class="settings-key-status" :data-ok="keyState?.configured ? 'true' : 'false'">
               {{ keyState?.configured ? t('configured') + (keyState.source ? ' · ' + t('keySource') + ': ' + keyState.source : '') : t('notConfigured') }}
             </div>
           </div>
 
-          <div :class="TW.card">
-            <h2 :class="TW.title">{{ t('settings') }}</h2>
-            <div class="dss-space-y-1.5">
-              <label :class="TW.label">{{ t('voice') }}</label>
-              <select :class="TW.select" :value="settings.voiceId || 'stella'" @change="setSetting('voiceId', $event.target.value)">
+          <div class="settings-card">
+            <h2 class="settings-title">{{ t('settings') }}</h2>
+            <div class="settings-field">
+              <label class="settings-label">{{ t('voice') }}</label>
+              <select class="settings-select" :value="settings.voiceId || 'stella'" @change="setSetting('voiceId', $event.target.value)">
                 <option value="stella">{{ t('voiceStella') }}</option>
                 <option value="tide">{{ t('voiceTide') }}</option>
               </select>
             </div>
-            <div class="dss-space-y-1.5">
-              <label :class="TW.label">{{ t('qualityLabel') }}</label>
-              <select :class="TW.select" :value="settings.ttsQuality || '64'" @change="setSetting('ttsQuality', $event.target.value)">
+            <div class="settings-field">
+              <label class="settings-label">{{ t('qualityLabel') }}</label>
+              <select class="settings-select" :value="settings.ttsQuality || '64'" @change="setSetting('ttsQuality', $event.target.value)">
                 <option v-for="value in ['64', '96', '128', '160', '192', '256', 'dynamic']" :key="value" :value="value">{{ qualityText(value) }}</option>
               </select>
             </div>
-            <div class="dss-space-y-1.5">
-              <label :class="TW.label">{{ t('edgeLanguage') }}</label>
-              <select :class="TW.select" :value="settings.edgeLanguage || 'auto'" @change="setSetting('edgeLanguage', $event.target.value)">
+            <div class="settings-field">
+              <label class="settings-label">{{ t('edgeLanguage') }}</label>
+              <select class="settings-select" :value="settings.edgeLanguage || 'auto'" @change="setSetting('edgeLanguage', $event.target.value)">
                 <option value="auto">{{ t('edgeAuto') }}</option>
                 <option value="ru">{{ t('edgeRu') }}</option>
                 <option value="en">{{ t('edgeEn') }}</option>
               </select>
             </div>
-            <label :class="TW.check">
-              <input :class="TW.checkbox" type="checkbox" :checked="settings.edgeEnabled !== false" @change="setSetting('edgeEnabled', $event.target.checked)" />
-              <span class="dss-space-y-0.5">
-                <strong class="dss-block dss-text-xs dss-font-medium dss-text-[var(--dsw-alias-label-primary)]">{{ t('edgePrimary') }}</strong>
-                <span :class="TW.hint">{{ t('edgeHint') }}</span>
+            <label class="settings-check">
+              <input class="settings-checkbox" type="checkbox" :checked="settings.edgeEnabled !== false" @change="setSetting('edgeEnabled', $event.target.checked)" />
+              <span class="settings-check-text">
+                <strong class="settings-check-title">{{ t('edgePrimary') }}</strong>
+                <span class="settings-hint">{{ t('edgeHint') }}</span>
               </span>
             </label>
-            <div :class="TW.hint">Клеопатра: ru-RU-SvetlanaNeural / en-US-AriaNeural · Македонский: ru-RU-DmitryNeural / en-US-GuyNeural</div>
-            <div class="dss-space-y-1.5">
-              <label :class="TW.label">{{ t('maxChars') }}</label>
-              <input :class="TW.input" type="number" min="100" max="9000" :value="settings.ttsMaxChars || 4000" @change="setSetting('ttsMaxChars', Number($event.target.value) || 4000)" />
+            <div class="settings-hint">Клеопатра: ru-RU-SvetlanaNeural / en-US-AriaNeural · Македонский: ru-RU-DmitryNeural / en-US-GuyNeural</div>
+            <div class="settings-field">
+              <label class="settings-label">{{ t('maxChars') }}</label>
+              <input class="settings-input" type="number" min="100" max="9000" :value="settings.ttsMaxChars || 4000" @change="setSetting('ttsMaxChars', Number($event.target.value) || 4000)" />
             </div>
-            <div class="dss-space-y-1.5">
-              <label :class="TW.label">{{ t('telegramHome') }}</label>
-              <input :class="TW.input" type="text" :value="settings.telegramHome || 'default'" @change="setSetting('telegramHome', $event.target.value)" />
-              <div :class="TW.hint">default</div>
+            <div class="settings-field">
+              <label class="settings-label">{{ t('telegramHome') }}</label>
+              <input class="settings-input" type="text" :value="settings.telegramHome || 'default'" @change="setSetting('telegramHome', $event.target.value)" />
+              <div class="settings-hint">default</div>
             </div>
-            <label :class="TW.check">
-              <input :class="TW.checkbox" type="checkbox" :checked="!!settings.alwaysVoice" @change="setSetting('alwaysVoice', $event.target.checked)" />
-              <span class="dss-space-y-0.5">
-                <strong class="dss-block dss-text-xs dss-font-medium dss-text-[var(--dsw-alias-label-primary)]">{{ t('alwaysVoice') }}</strong>
-                <span :class="TW.hint">{{ t('alwaysVoiceHint') }}</span>
+            <label class="settings-check">
+              <input class="settings-checkbox" type="checkbox" :checked="!!settings.alwaysVoice" @change="setSetting('alwaysVoice', $event.target.checked)" />
+              <span class="settings-check-text">
+                <strong class="settings-check-title">{{ t('alwaysVoice') }}</strong>
+                <span class="settings-hint">{{ t('alwaysVoiceHint') }}</span>
               </span>
             </label>
-            <div class="dss-rounded-lg dss-border dss-border-[var(--dsw-alias-state-warn-primary)] dss-bg-[var(--dsw-alias-bg-layer-2)] dss-p-3 dss-text-xs dss-leading-5 dss-text-[var(--dsw-alias-state-warn-primary)]">{{ t('russianWarning') }}</div>
-            <div class="dss-flex dss-flex-wrap dss-gap-2 dss-pt-1">
-              <button :class="TW.button + ' ' + TW.primary" type="button" :disabled="!!busy" @click="saveForm">{{ t('saveSettings') }}</button>
-              <button :class="TW.button + ' ' + TW.secondary" type="button" :disabled="!!busy" @click="testVoice">{{ busy === 'test' ? t('playing') : t('testVoice') }}</button>
+            <div class="settings-warning">{{ t('russianWarning') }}</div>
+            <div class="settings-actions">
+              <button class="settings-button settings-button-primary" type="button" :disabled="!!busy" @click="saveForm">{{ t('saveSettings') }}</button>
+              <button class="settings-button settings-button-secondary" type="button" :disabled="!!busy" @click="testVoice">{{ busy === 'test' ? t('playing') : t('testVoice') }}</button>
             </div>
           </div>
 
-          <div :class="TW.card">
-            <h2 :class="TW.title">Edge TTS</h2>
-            <div class="dss-flex dss-items-center dss-gap-2 dss-text-xs dss-text-[var(--dsw-alias-label-primary)]">
+          <div class="settings-card">
+            <h2 class="settings-title">Edge TTS</h2>
+            <div class="settings-status">
               <span class="dss-dot" :data-tone="edge?.available ? 'ok' : 'error'"></span>
               <span>{{ edge?.available ? t('edgeAvailable') : t('edgeMissing') }}</span>
             </div>
             <div v-if="edge?.error" class="dss-err">{{ edge.error }}</div>
           </div>
 
-          <div :class="TW.card">
-            <h2 :class="TW.title">{{ t('mcpService') }}</h2>
-            <p :class="TW.hint">{{ t('mcpEndpoint') }}</p>
-            <div class="dss-inline">
-              <code class="dss-rounded-md dss-bg-[var(--dsw-alias-bg-layer-2)] dss-px-2 dss-py-1 dss-font-mono dss-text-[11px] dss-text-[var(--dsw-alias-label-primary)]">http://127.0.0.1:3080/deepseek-speech/mcp</code>
-              <button :class="TW.button + ' ' + TW.secondary" type="button" @click="copyCommand('http://127.0.0.1:3080/deepseek-speech/mcp')">{{ t('copyEndpoint') }}</button>
+          <div class="settings-card">
+            <h2 class="settings-title">{{ t('mcpService') }}</h2>
+            <p class="settings-hint">{{ t('mcpEndpoint') }}</p>
+            <div class="settings-inline">
+              <code class="settings-code">http://127.0.0.1:3080/deepseek-speech/mcp</code>
+              <button class="settings-button settings-button-secondary" type="button" @click="copyCommand('http://127.0.0.1:3080/deepseek-speech/mcp')">{{ t('copyEndpoint') }}</button>
             </div>
-            <div class="dss-flex dss-items-center dss-gap-2 dss-text-xs dss-text-[var(--dsw-alias-label-primary)]">
+            <div class="settings-status">
               <span class="dss-dot" :data-tone="mcp?.available ? 'ok' : 'error'"></span>
               <span>{{ mcp?.available ? t('mcpReady') : t('mcpMissing') }}</span>
             </div>
             <div v-if="mcp?.error" class="dss-err">{{ mcp.error }}</div>
-            <div :class="TW.hint">{{ t('mcpTools') }}: transcribe_audio, synthesize_speech, speech_status, speech_stats, list_voices</div>
+            <div class="settings-hint">{{ t('mcpTools') }}: transcribe_audio, synthesize_speech, speech_status, speech_stats, list_voices</div>
           </div>
 
-          <div :class="TW.card">
-            <h2 :class="TW.title">{{ t('dependencies') }}</h2>
-            <p :class="TW.hint">ffmpeg / ffprobe / libopus</p>
-            <div v-if="deps" class="dss-space-y-2">
+          <div class="settings-card">
+            <h2 class="settings-title">{{ t('dependencies') }}</h2>
+            <p class="settings-hint">ffmpeg / ffprobe / libopus</p>
+            <div v-if="deps" class="settings-deps">
               <div class="dss-row">
                 <span class="dss-cell">{{ t('ffmpeg') }}</span>
                 <span class="dss-cell dss-mono">{{ deps.ffmpeg?.found ? deps.ffmpeg.path + ' · ' + (deps.ffmpeg.version || '') : t('missing') }}</span>
@@ -406,10 +392,10 @@ export const SpeechApp = defineComponent({
                 <span class="dss-badge"><span class="dss-dot" :data-tone="deps.libopus ? 'ok' : 'error'"></span>{{ deps.libopus ? t('found') : t('missing') }}</span>
               </div>
             </div>
-            <div v-else :class="TW.hint">{{ t('loading') }}</div>
-            <div class="dss-flex dss-flex-wrap dss-gap-2 dss-pt-1">
-              <button :class="TW.button + ' ' + TW.secondary" type="button" :disabled="!!busy" @click="checkDeps">{{ t('check') }}</button>
-              <button v-if="!deps?.ok" :class="TW.button + ' ' + TW.primary" type="button" :disabled="!!busy" @click="installFfmpeg">{{ busy === 'install' ? t('installing') : t('install') }}</button>
+            <div v-else class="settings-hint">{{ t('loading') }}</div>
+            <div class="settings-actions">
+              <button class="settings-button settings-button-secondary" type="button" :disabled="!!busy" @click="checkDeps">{{ t('check') }}</button>
+              <button v-if="!deps?.ok" class="settings-button settings-button-primary" type="button" :disabled="!!busy" @click="installFfmpeg">{{ busy === 'install' ? t('installing') : t('install') }}</button>
             </div>
             <div v-if="installInfo?.code === 'root-required'">
               <div class="dss-warn" style="margin-top: 10px">{{ t('rootRequired') }}. {{ t('rootHint') }}</div>
@@ -418,10 +404,10 @@ export const SpeechApp = defineComponent({
             </div>
           </div>
 
-          <div :class="TW.card">
-            <h2 :class="TW.title">{{ t('route') }}</h2>
-            <p :class="TW.hint">{{ t('routeHint') }}</p>
-            <div class="dss-flex dss-items-center dss-gap-2 dss-text-xs dss-text-[var(--dsw-alias-label-primary)]">
+          <div class="settings-card">
+            <h2 class="settings-title">{{ t('route') }}</h2>
+            <p class="settings-hint">{{ t('routeHint') }}</p>
+            <div class="settings-status">
               <span class="dss-dot" :data-tone="route?.active ? 'ok' : (route?.conflict ? 'error' : 'warn')"></span>
               <span>{{ route?.active ? t('routeActive') : (route?.conflict ? t('routeConflict') : t('routeInactive')) }}</span>
             </div>

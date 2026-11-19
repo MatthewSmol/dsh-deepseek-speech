@@ -2,7 +2,6 @@ import { createApp } from 'vue'
 import { SpeechApp } from './vue/SpeechApp'
 import { en, ru } from './locales'
 import { legacyCss } from './vue/styles'
-import tailwindCss from '../dist/client.css?inline'
 
 /**
  * EN: DSH client entry. DSH's slot host is React, so this file only provides a
@@ -54,14 +53,12 @@ import tailwindCss from '../dist/client.css?inline'
     }
 
     function apply(ctx: any) {
-      // EN: Tailwind is inlined at build time, so it works even if the CSS route
-      // is unavailable. Both styles are scoped to .dss-root.
-      // RU: Tailwind встроен на этапе сборки, поэтому работает даже без CSS-маршрута.
-      // Оба стиля ограничены .dss-root.
+      // EN: The scoped stylesheet is embedded in the client bundle.
+      // RU: Scoped-стили встроены прямо в клиентский bundle.
       ctx.effect(() => {
         if (typeof document === 'undefined') return () => {}
         const style = document.createElement('style')
-        style.textContent = `${tailwindCss}\n${legacyCss}`
+        style.textContent = legacyCss
         style.setAttribute('data-deepseek-speech-styles', '')
         document.head.appendChild(style)
         return () => style.remove()

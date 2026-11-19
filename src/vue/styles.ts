@@ -1,6 +1,6 @@
 /**
- * EN: Legacy scoped CSS for the stats panel/history; Tailwind handles settings.
- * RU: Старый scoped CSS для статистики/истории; настройки оформляет Tailwind.
+ * EN: Scoped CSS for the stats panel, settings controls and history.
+ * RU: Scoped CSS для статистики, контролов настроек и истории.
  */
 export const legacyCss = `
   .dss-root { box-sizing: border-box; height: 100%; overflow: auto; padding: 24px 28px 60px; color: var(--dsw-alias-label-primary); font: inherit; }
@@ -67,4 +67,37 @@ export const legacyCss = `
     .dss-hist-row .dss-cell::before { content: attr(data-label); color: var(--dsw-alias-label-secondary); display: inline; margin-right: 5px; }
     .dss-preview { grid-column: 1 / -1; }
   }
+
+  /* EN: Settings layout and controls; scoped CSS only. */
+  /* RU: Раскладка и контролы настроек; только scoped CSS. */
+  .settings-stack { display: flex; flex-direction: column; gap: 16px; }
+  .settings-card { box-sizing: border-box; width: 100%; min-width: 0; padding: 20px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 16px; background: var(--dsw-alias-bg-layer-1); box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+  .settings-card > * + * { margin-top: 12px; }
+  .settings-title { margin: 0; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--dsw-alias-label-primary); }
+  .settings-hint { margin: 0; color: var(--dsw-alias-label-secondary); font-size: 12px; line-height: 18px; overflow-wrap: anywhere; }
+  .settings-label { display: block; color: var(--dsw-alias-label-secondary); font-size: 12px; line-height: 18px; font-weight: 500; }
+  .settings-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .settings-input, .settings-select { box-sizing: border-box; width: 100%; min-height: 38px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px; background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); padding: 7px 10px; font: inherit; font-size: 13px; }
+  .settings-input:focus, .settings-select:focus { outline: 2px solid var(--dsw-alias-brand-primary); outline-offset: 0; }
+  .settings-key-row { display: flex; flex-direction: column; gap: 8px; }
+  .settings-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .settings-button { display: inline-flex; align-items: center; justify-content: center; min-height: 34px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 8px; padding: 6px 12px; font: inherit; font-size: 12px; font-weight: 500; line-height: 18px; cursor: pointer; background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
+  .settings-button:hover { background: var(--dsw-alias-bg-layer-3); }
+  .settings-button:disabled { opacity: .5; cursor: not-allowed; }
+  .settings-button-primary { border-color: transparent; background: var(--dsw-alias-brand-primary); color: var(--dsw-alias-bg-base); }
+  .settings-button-primary:hover { background: var(--dsw-alias-brand-primary); opacity: .9; }
+  .settings-button-secondary { background: var(--dsw-alias-bg-layer-2); }
+  .settings-check { display: flex; align-items: flex-start; gap: 10px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 10px; background: var(--dsw-alias-bg-layer-2); padding: 12px; }
+  .settings-checkbox { flex: 0 0 auto; width: 16px; height: 16px; margin: 1px 0 0; accent-color: var(--dsw-alias-brand-primary); }
+  .settings-check-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .settings-check-title { display: block; color: var(--dsw-alias-label-primary); font-size: 12px; line-height: 18px; font-weight: 500; }
+  .settings-key-status { font-size: 12px; line-height: 18px; }
+  .settings-key-status[data-ok=true] { color: var(--dsw-alias-state-success-primary); }
+  .settings-key-status[data-ok=false] { color: var(--dsw-alias-state-warn-primary); }
+  .settings-warning { border: 1px solid var(--dsw-alias-state-warn-primary); border-radius: 8px; background: var(--dsw-alias-bg-layer-2); padding: 10px; color: var(--dsw-alias-state-warn-primary); font-size: 12px; line-height: 18px; }
+  .settings-status { display: flex; align-items: center; gap: 8px; color: var(--dsw-alias-label-primary); font-size: 12px; line-height: 18px; }
+  .settings-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .settings-code { display: inline-block; max-width: 100%; overflow-wrap: anywhere; border-radius: 6px; background: var(--dsw-alias-bg-layer-2); padding: 4px 8px; color: var(--dsw-alias-label-primary); font-family: var(--ds-font-family-code, ui-monospace, monospace); font-size: 11px; }
+  .settings-deps { display: flex; flex-direction: column; gap: 8px; }
+  @media (min-width: 640px) { .settings-key-row { flex-direction: row; align-items: center; } .settings-key-row .settings-input { flex: 1 1 auto; } }
 `
