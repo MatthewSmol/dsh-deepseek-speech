@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "DeepSeek ASR, Edge/DeepSeek TTS, and an MCP service for Telegram voice messages with sidebar usage statistics.",
+  "description": "DeepSeek ASR, Edge/DeepSeek TTS, and an MCP service with a Vue 3 + Tailwind sidebar for Telegram voice messages.",
   "exports": {
     ".": "./dist/index.js",
     "./client": "./dist/client.js",
@@ -45,6 +45,7 @@
     "@modelcontextprotocol/node": "^2.1.2",
     "@modelcontextprotocol/server": "^2.4.0",
     "msedge-tts": "^2.1.1",
+    "vue": "^3.5.45",
     "zod": "^4.6.7"
   },
   "devDependencies": {

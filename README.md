@@ -10,7 +10,8 @@ A DSH plugin and MCP service for Telegram voice messages, DeepSeek ASR, Edge TTS
 - Assistant replies → Edge TTS (primary, Russian/English) → OGG/Opus → Telegram voice note, when the prompt asks for it or **Always reply with voice** is enabled.
 - DeepSeek TTS is the automatic fallback if Edge fails.
 - A sidebar panel shows duration, characters, estimated tokens, cost, latency, quality and provider.
-- The settings page uses Tailwind CSS utilities scoped to `.dss-root` with DSH theme variables.
+- The sidebar/settings UI is built with Vue 3 and Tailwind CSS; DSH's slot host is React, so a tiny React mount bridge is the only React code.
+- Tailwind utilities are scoped to `.dss-root` and use DSH theme variables.
 - An MCP Streamable HTTP server exposes the same speech service to DSH and external MCP clients.
 
 Repository: <https://github.com/MatthewSmol/dsh-deepseek-speech>
@@ -183,11 +184,13 @@ pnpm test        # builds, then runs node:test
 bash scripts/check-secrets.sh
 ```
 
-The browser client is built by Vite as a minified IIFE (`vite.config.ts`); the Node host is compiled by `tsc` because it keeps dynamic MCP/Edge imports and external dependencies. `dist/client.js` is the minified client; `dist/client.css` is the scoped Tailwind output.
+The Vue client is built by Vite as a minified IIFE (`vite.config.ts`); Vue is bundled, while DSH supplies React only for the slot bridge. The Node host is compiled by `tsc` because it keeps dynamic MCP/Edge imports and external dependencies. `dist/client.js` is the minified client; `dist/client.css` is the scoped Tailwind output.
 
 - `src/index.ts` — plugin entry, stores, routes, voice listener.
 - `src/lib/*.ts` — DeepSeek, Edge TTS, ffmpeg, ASR/TTS orchestration, MCP, storage, routing.
-- `src/client.ts` — DSH Web sidebar/settings client (plain browser script; no imports/exports).
+- `src/client.ts` — React slot bridge and icons (DSH requires a React element in slots).
+- `src/vue/SpeechApp.ts` — Vue 3 root for the sidebar and settings; template + composition API.
+- `src/locales.ts` — shared EN/RU dictionaries.
 - `dist/` — generated JavaScript and `client.css` committed for DSH Git installs.
 - `client.js`/`index.js` — generated compatibility entries for DSH's cached loader; do not edit by hand.
 
@@ -202,7 +205,8 @@ DSH-плагин и MCP-сервис для голосовых Telegram, DeepSee
 - Ответы ассистента → Edge TTS (основной, русский/английский) → OGG/Opus → голосовое Telegram, если это попросили в промпте или включена галочка **«Всегда отвечать голосом»**.
 - DeepSeek TTS — автоматический fallback при сбое Edge.
 - Панель в сайдбаре показывает длительность, символы, оценку токенов, стоимость, задержку, качество и провайдера.
-- Страница настроек оформлена Tailwind CSS; утилиты ограничены `.dss-root` и используют переменные темы DSH.
+- UI сайдбара/настроек построен на Vue 3 и Tailwind CSS; slot-хост DSH — React, поэтому на React остаётся только мини-мост монтирования.
+- Tailwind-утилиты ограничены `.dss-root` и используют переменные темы DSH.
 - MCP Streamable HTTP сервер отдаёт тот же сервис DSH и внешним MCP-клиентам.
 
 Репозиторий: <https://github.com/MatthewSmol/dsh-deepseek-speech>
@@ -375,10 +379,12 @@ pnpm test        # сборка и запуск node:test
 bash scripts/check-secrets.sh
 ```
 
-Браузерный клиент собирается Vite как минифицированный IIFE (`vite.config.ts`); Node-host компилируется `tsc`, потому что сохраняет динамические MCP/Edge-импорты и внешние зависимости. `dist/client.js` — минифицированный клиент; `dist/client.css` — ограниченный `.dss-root` Tailwind.
+Vue-клиент собирается Vite как минифицированный IIFE (`vite.config.ts`); Vue входит в бандл, а React нужен только для моста слотов DSH. Node-host компилируется `tsc`, потому что сохраняет динамические MCP/Edge-импорты и внешние зависимости. `dist/client.js` — минифицированный клиент; `dist/client.css` — ограниченный `.dss-root` Tailwind.
 
 - `src/index.ts` — вход плагина, хранилища, маршруты, слушатель голоса.
 - `src/lib/*.ts` — DeepSeek, Edge TTS, ffmpeg, оркестрация ASR/TTS, MCP, хранение, маршрутизация.
-- `src/client.ts` — клиент сайдбара/настроек DSH Web (обычный браузерный скрипт без import/export).
+- `src/client.ts` — React-мост слотов и иконки (DSH требует React-элемент в слотах).
+- `src/vue/SpeechApp.ts` — Vue 3-корень сайдбара и настроек; template + Composition API.
+- `src/locales.ts` — общие словари EN/RU.
 - `dist/` — сгенерированный JavaScript и `client.css`, закоммичены для Git-установки DSH.
 - `client.js`/`index.js` — сгенерированные compatibility-точки для кэшированного загрузчика DSH; вручную не редактировать.

@@ -9,6 +9,17 @@ import { defineConfig } from 'vite'
  * `window.__ModuleLoader__.load` и не добавляет import/export.
  */
 export default defineConfig({
+  define: {
+    'process.env.NODE_ENV': '"production"',
+    __VUE_OPTIONS_API__: true,
+    __VUE_PROD_DEVTOOLS__: false,
+    __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
+  },
+  resolve: {
+    // EN: Use the full Vue build so the single-file app can use a template.
+    // RU: Полная сборка Vue нужна, чтобы приложение могло использовать template.
+    alias: { vue: 'vue/dist/vue.esm-bundler.js' },
+  },
   build: {
     outDir: 'dist',
     emptyOutDir: false,
