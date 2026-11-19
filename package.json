@@ -16,6 +16,7 @@
     "src/**/*.ts",
     "src/tailwind.css",
     "tailwind.config.cjs",
+    "vite.config.ts",
     "tsconfig.json",
     "tsconfig.client.json",
     "client.js",
@@ -49,13 +50,15 @@
   "devDependencies": {
     "@types/node": "^22.20.5",
     "tailwindcss": "^3.4.19",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^7.3.8"
   },
   "main": "./dist/index.js",
   "scripts": {
-    "build": "npm run build-css && tsc -p tsconfig.json && tsc -p tsconfig.client.json && node scripts/sync-compat.mjs",
+    "build": "npm run build-css && tsc -p tsconfig.json && tsc -p tsconfig.client.json --noEmit && npm run build-client && node scripts/sync-compat.mjs",
     "check": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.client.json --noEmit",
     "test": "npm run build && node --test test/*.test.mjs",
-    "build-css": "tailwindcss -c tailwind.config.cjs -i src/tailwind.css -o dist/client.css --minify"
+    "build-css": "tailwindcss -c tailwind.config.cjs -i src/tailwind.css -o dist/client.css --minify",
+    "build-client": "vite build --config vite.config.ts"
   }
 }

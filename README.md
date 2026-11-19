@@ -177,11 +177,13 @@ The authoritative source is TypeScript under `src/`; it has bilingual EN/RU comm
 
 ```bash
 pnpm install
-pnpm build       # Tailwind CSS + tsc host/client + compatibility entries
+pnpm build       # Tailwind CSS, tsc host, Vite client, compatibility entries
 pnpm check       # type-check without emitting
 pnpm test        # builds, then runs node:test
 bash scripts/check-secrets.sh
 ```
+
+The browser client is built by Vite as a minified IIFE (`vite.config.ts`); the Node host is compiled by `tsc` because it keeps dynamic MCP/Edge imports and external dependencies. `dist/client.js` is the minified client; `dist/client.css` is the scoped Tailwind output.
 
 - `src/index.ts` — plugin entry, stores, routes, voice listener.
 - `src/lib/*.ts` — DeepSeek, Edge TTS, ffmpeg, ASR/TTS orchestration, MCP, storage, routing.
@@ -367,11 +369,13 @@ DeepSeek не возвращает token usage для ASR/TTS. ASR тарифи�
 
 ```bash
 pnpm install
-pnpm build       # Tailwind CSS + tsc host/client + compatibility-точки
+pnpm build       # Tailwind CSS, tsc host, Vite client, compatibility-точки
 pnpm check       # проверка типов без записи
 pnpm test        # сборка и запуск node:test
 bash scripts/check-secrets.sh
 ```
+
+Браузерный клиент собирается Vite как минифицированный IIFE (`vite.config.ts`); Node-host компилируется `tsc`, потому что сохраняет динамические MCP/Edge-импорты и внешние зависимости. `dist/client.js` — минифицированный клиент; `dist/client.css` — ограниченный `.dss-root` Tailwind.
 
 - `src/index.ts` — вход плагина, хранилища, маршруты, слушатель голоса.
 - `src/lib/*.ts` — DeepSeek, Edge TTS, ffmpeg, оркестрация ASR/TTS, MCP, хранение, маршрутизация.
