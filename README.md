@@ -10,6 +10,7 @@ A DSH plugin and MCP service for Telegram voice messages, DeepSeek ASR, Edge TTS
 - Assistant replies → Edge TTS (primary, Russian/English) → OGG/Opus → Telegram voice note, when the prompt asks for it or **Always reply with voice** is enabled.
 - DeepSeek TTS is the automatic fallback if Edge fails.
 - A sidebar panel shows duration, characters, estimated tokens, cost, latency, quality and provider.
+- The settings page uses Tailwind CSS utilities scoped to `.dss-root` with DSH theme variables.
 - An MCP Streamable HTTP server exposes the same speech service to DSH and external MCP clients.
 
 Repository: <https://github.com/MatthewSmol/dsh-deepseek-speech>
@@ -176,7 +177,7 @@ The authoritative source is TypeScript under `src/`; it has bilingual EN/RU comm
 
 ```bash
 pnpm install
-pnpm build       # tsc host + client, then sync compatibility entries
+pnpm build       # Tailwind CSS + tsc host/client + compatibility entries
 pnpm check       # type-check without emitting
 pnpm test        # builds, then runs node:test
 bash scripts/check-secrets.sh
@@ -185,7 +186,7 @@ bash scripts/check-secrets.sh
 - `src/index.ts` — plugin entry, stores, routes, voice listener.
 - `src/lib/*.ts` — DeepSeek, Edge TTS, ffmpeg, ASR/TTS orchestration, MCP, storage, routing.
 - `src/client.ts` — DSH Web sidebar/settings client (plain browser script; no imports/exports).
-- `dist/` — generated JavaScript committed for DSH Git installs.
+- `dist/` — generated JavaScript and `client.css` committed for DSH Git installs.
 - `client.js`/`index.js` — generated compatibility entries for DSH's cached loader; do not edit by hand.
 
 ---
@@ -199,6 +200,7 @@ DSH-плагин и MCP-сервис для голосовых Telegram, DeepSee
 - Ответы ассистента → Edge TTS (основной, русский/английский) → OGG/Opus → голосовое Telegram, если это попросили в промпте или включена галочка **«Всегда отвечать голосом»**.
 - DeepSeek TTS — автоматический fallback при сбое Edge.
 - Панель в сайдбаре показывает длительность, символы, оценку токенов, стоимость, задержку, качество и провайдера.
+- Страница настроек оформлена Tailwind CSS; утилиты ограничены `.dss-root` и используют переменные темы DSH.
 - MCP Streamable HTTP сервер отдаёт тот же сервис DSH и внешним MCP-клиентам.
 
 Репозиторий: <https://github.com/MatthewSmol/dsh-deepseek-speech>
@@ -365,7 +367,7 @@ DeepSeek не возвращает token usage для ASR/TTS. ASR тарифи�
 
 ```bash
 pnpm install
-pnpm build       # tsc host + client, затем синхронизация compatibility-точек
+pnpm build       # Tailwind CSS + tsc host/client + compatibility-точки
 pnpm check       # проверка типов без записи
 pnpm test        # сборка и запуск node:test
 bash scripts/check-secrets.sh
@@ -374,5 +376,5 @@ bash scripts/check-secrets.sh
 - `src/index.ts` — вход плагина, хранилища, маршруты, слушатель голоса.
 - `src/lib/*.ts` — DeepSeek, Edge TTS, ffmpeg, оркестрация ASR/TTS, MCP, хранение, маршрутизация.
 - `src/client.ts` — клиент сайдбара/настроек DSH Web (обычный браузерный скрипт без import/export).
-- `dist/` — сгенерированный JavaScript, закоммичен для Git-установки DSH.
+- `dist/` — сгенерированный JavaScript и `client.css`, закоммичены для Git-установки DSH.
 - `client.js`/`index.js` — сгенерированные compatibility-точки для кэшированного загрузчика DSH; вручную не редактировать.

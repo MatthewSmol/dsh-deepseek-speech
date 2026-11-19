@@ -5,6 +5,7 @@
  * MCP endpoint. Маршруты браузера/MCP доступны только с loopback.
  */
 import { Buffer } from 'node:buffer';
+import { readFile } from 'node:fs/promises';
 import { historyTotals, previewText } from './store.js';
 import { asrCostUsd, ttsCostUsd, estimateTokens, describeApiKey, redactError } from './deepseek.js';
 import { transcribeBuffer, synthesizeVoice, SpeechError } from './speech.js';
@@ -249,6 +250,26 @@ export function registerRoutes({ ctx, config, settingsStore, history, getDeps, l
             getRouteStatus: () => ({ active: asrRouteActive, conflict: asrRouteConflict }),
         }, req, res);
     }, 'deepseek-speech/mcp');
+    // EN: Tailwind CSS for the settings page; the client injects a same-origin link.
+    // RU: Tailwind CSS для страницы настроек; клиент подключает same-origin link.
+    register('/deepseek-speech/client.css', async (req, res) => {
+        if (!methodGuard(req, res, 'GET'))
+            return;
+        if (!trustedBrowser(req, ctx)) {
+            writeJson(res, 403, { ok: false, error: { code: 'forbidden', message: 'loopback only' } });
+            return;
+        }
+        try {
+            const css = await readFile(new URL('../client.css', import.meta.url));
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'text/css; charset=utf-8');
+            res.setHeader('Cache-Control', 'no-cache');
+            res.end(css);
+        }
+        catch (err) {
+            routeError(res, err, logger);
+        }
+    }, 'deepseek-speech/client.css');
     register('/deepseek-speech/status', async (req, res) => {
         if (!methodGuard(req, res, 'GET'))
             return;

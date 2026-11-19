@@ -1,0 +1,24 @@
+/*
+ * EN: Tailwind utilities for the settings page. Preflight is intentionally
+ * disabled and every rule is scoped to `.dss-root` by tailwind.config.cjs.
+ * RU: Tailwind-утилиты для страницы настроек. Preflight отключён, все правила
+ * ограничены `.dss-root` в tailwind.config.cjs.
+ */
+@tailwind components;
+@tailwind utilities;
+
+/* EN: Minimal scoped base, replacing the parts of preflight we need. */
+/* RU: Минимальная локальная база вместо нужных частей preflight. */
+.dss-root,
+.dss-root *,
+.dss-root *::before,
+.dss-root *::after {
+  box-sizing: border-box;
+}
+.dss-root *,
+.dss-root *::before,
+.dss-root *::after {
+  border-width: 0;
+  border-style: solid;
+  border-color: #e5e7eb;
+}

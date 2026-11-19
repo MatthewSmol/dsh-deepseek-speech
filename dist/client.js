@@ -5,6 +5,25 @@ window.__ModuleLoader__.load({
         const h = React.createElement;
         const NS = 'deepseek-speech';
         const PANEL_ID = 'deepseek-speech';
+        /**
+         * EN: Tailwind design tokens for the settings page. The classes are scoped
+         * by the CSS build (`important: '.dss-root'`) and use DSH theme variables.
+         * RU: Tailwind-токены дизайна страницы настроек. Классы ограничены CSS-сборкой
+         * (`important: '.dss-root'`) и используют переменные темы DSH.
+         */
+        const TW = {
+            card: 'dss-rounded-2xl dss-border dss-border-[var(--dsw-alias-border-l2)] dss-bg-[var(--dsw-alias-bg-layer-1)] dss-p-5 dss-shadow-sm dss-space-y-3',
+            title: 'dss-text-sm dss-font-semibold dss-leading-5 dss-text-[var(--dsw-alias-label-primary)]',
+            hint: 'dss-text-xs dss-leading-5 dss-text-[var(--dsw-alias-label-secondary)]',
+            label: 'dss-block dss-text-xs dss-font-medium dss-leading-5 dss-text-[var(--dsw-alias-label-secondary)]',
+            input: 'dss-w-full dss-rounded-lg dss-border dss-border-[var(--dsw-alias-border-l2)] dss-bg-[var(--dsw-alias-bg-layer-2)] dss-px-3 dss-py-2 dss-text-sm dss-text-[var(--dsw-alias-label-primary)] dss-outline-none focus:dss-ring-2 focus:dss-ring-[var(--dsw-alias-brand-primary)]',
+            select: 'dss-w-full dss-rounded-lg dss-border dss-border-[var(--dsw-alias-border-l2)] dss-bg-[var(--dsw-alias-bg-layer-2)] dss-px-3 dss-py-2 dss-text-sm dss-text-[var(--dsw-alias-label-primary)] dss-outline-none focus:dss-ring-2 focus:dss-ring-[var(--dsw-alias-brand-primary)]',
+            button: 'dss-inline-flex dss-items-center dss-justify-center dss-rounded-lg dss-px-3 dss-py-2 dss-text-xs dss-font-medium dss-leading-5 dss-transition disabled:dss-cursor-not-allowed disabled:dss-opacity-50',
+            primary: 'dss-bg-[var(--dsw-alias-brand-primary)] dss-text-[var(--dsw-alias-bg-base)] hover:dss-opacity-90',
+            secondary: 'dss-border dss-border-[var(--dsw-alias-border-l2)] dss-bg-[var(--dsw-alias-bg-layer-2)] dss-text-[var(--dsw-alias-label-primary)] hover:dss-bg-[var(--dsw-alias-bg-layer-3)]',
+            check: 'dss-flex dss-items-start dss-gap-2.5 dss-rounded-lg dss-border dss-border-[var(--dsw-alias-border-l2)] dss-bg-[var(--dsw-alias-bg-layer-2)] dss-p-3',
+            checkbox: 'dss-mt-0.5 dss-h-4 dss-w-4 dss-shrink-0 dss-accent-[var(--dsw-alias-brand-primary)]',
+        };
         const en = {
             nav: 'DeepSeek speech',
             title: 'DeepSeek speech',
@@ -388,7 +407,7 @@ window.__ModuleLoader__.load({
          * RU: Обёртка label/hint для контролов настроек.
          */
         function Field({ label, hint, children }) {
-            return h('div', { className: 'dss-field' }, h('label', null, label), hint ? h('div', { className: 'dss-hint' }, hint) : null, children);
+            return h('div', { className: 'dss-space-y-1.5' }, h('label', { className: TW.label }, label), children, hint ? h('div', { className: TW.hint }, hint) : null);
         }
         function App(props) {
             const surface = props.surface || 'main';
@@ -559,50 +578,59 @@ window.__ModuleLoader__.load({
                 : entries.map((entry) => h('div', { className: 'dss-hist-row', key: entry.id }, h('span', { className: 'dss-cell', 'data-label': t('time') }, fmtDate(entry.at)), h('span', { className: 'dss-cell', 'data-label': t('source') }, sourceText(entry.source, t)), h('span', { className: 'dss-cell', 'data-label': t('kind') }, entry.kind.toUpperCase()), h('span', { className: 'dss-cell', 'data-label': t('duration') }, fmtDuration(entry.audioDurationMs)), h('span', { className: 'dss-cell', 'data-label': t('chars') }, entry.textChars || 0), h('span', { className: 'dss-cell', 'data-label': t('tokens') }, entry.tokensEstimate || 0), h('span', { className: 'dss-cell', 'data-label': t('latency') }, `${entry.latencyMs || 0} ms`), h('span', { className: 'dss-cell', 'data-label': t('quality') }, providerText(entry, t)), h('span', { className: 'dss-cell', 'data-label': t('status') }, h('span', { className: 'dss-badge' }, h('span', { className: 'dss-dot', 'data-tone': entry.status === 'ok' ? 'ok' : (entry.status === 'error' ? 'error' : 'warn') }), entry.status === 'ok' ? t('ok') : (entry.status === 'error' ? t('error') : t('skipped')))), entry.preview || entry.error
                     ? h('div', { className: 'dss-preview' }, entry.error ? `${t('error')}: ${entry.error}` : entry.preview)
                     : null))), h('div', { className: 'dss-foot' }, t('tokensNote')), h('div', { className: 'dss-foot' }, t('ratesNote')), h('div', { className: 'dss-foot' }, t('historyNote')));
-            const keySection = h('div', { className: 'dss-card-section' }, h('h3', null, t('apiKey')), h('p', null, t('apiKeyHint')), h('div', { className: 'dss-inline' }, h('input', {
-                className: 'dss-input',
+            const keySection = h('div', { className: TW.card }, h('h2', { className: TW.title }, t('apiKey')), h('p', { className: TW.hint }, t('apiKeyHint')), h('div', { className: 'dss-flex dss-flex-col dss-gap-2 sm:dss-flex-row' }, h('input', {
+                className: TW.input,
                 type: 'password',
                 autoComplete: 'off',
                 spellCheck: false,
                 placeholder: keyState?.configured ? `•••••••• (${t('configured')})` : 'sk-…',
                 value: keyDraft,
                 onChange: (e) => setKeyDraft(e.target.value),
-            }), h('button', { className: 'dss-btn', 'data-kind': 'primary', type: 'button', onClick: saveKey, disabled: Boolean(busy) }, t('save')), keyState?.configured ? h('button', { className: 'dss-btn', 'data-kind': 'danger', type: 'button', onClick: deleteKey, disabled: Boolean(busy) }, t('delete')) : null), h('div', { className: keyState?.configured ? 'dss-ok' : 'dss-warn', style: { marginTop: '6px' } }, keyState?.configured ? `${t('configured')}${keyState.source ? ` · ${t('keySource')}: ${keyState.source}` : ''}` : t('notConfigured')));
-            const depsSection = h('div', { className: 'dss-card-section' }, h('h3', null, t('dependencies')), h('p', null, 'ffmpeg / ffprobe / libopus'), deps
-                ? h('div', null, h('div', { className: 'dss-row' }, h('span', { className: 'dss-cell' }, t('ffmpeg')), h('span', { className: 'dss-cell dss-mono' }, deps.ffmpeg?.found ? `${deps.ffmpeg.path} · ${deps.ffmpeg.version || ''}` : t('missing')), h('span', { className: 'dss-badge' }, h('span', { className: 'dss-dot', 'data-tone': deps.ffmpeg?.found ? 'ok' : 'error' }), deps.ffmpeg?.found ? t('found') : t('missing'))), h('div', { className: 'dss-row' }, h('span', { className: 'dss-cell' }, t('ffprobe')), h('span', { className: 'dss-cell dss-mono' }, deps.ffprobe?.found ? `${deps.ffprobe.path} · ${deps.ffprobe.version || ''}` : t('missing')), h('span', { className: 'dss-badge' }, h('span', { className: 'dss-dot', 'data-tone': deps.ffprobe?.found ? 'ok' : 'error' }), deps.ffprobe?.found ? t('found') : t('missing'))), h('div', { className: 'dss-row' }, h('span', { className: 'dss-cell' }, t('libopus')), h('span', { className: 'dss-cell' }, deps.libopus ? t('found') : t('missing')), h('span', { className: 'dss-badge' }, h('span', { className: 'dss-dot', 'data-tone': deps.libopus ? 'ok' : 'error' }), deps.libopus ? t('found') : t('missing'))))
-                : h('div', { className: 'dss-hint' }, t('loading')), h('div', { className: 'dss-inline', style: { marginTop: '10px' } }, h('button', { className: 'dss-btn', type: 'button', onClick: checkDeps, disabled: Boolean(busy) }, t('check')), !deps?.ok ? h('button', { className: 'dss-btn', 'data-kind': 'primary', type: 'button', onClick: installFfmpeg, disabled: Boolean(busy) }, busy === 'install' ? t('installing') : t('install')) : null), installInfo?.code === 'root-required'
+            }), h('div', { className: 'dss-flex dss-flex-wrap dss-gap-2' }, h('button', { className: `${TW.button} ${TW.primary}`, type: 'button', onClick: saveKey, disabled: Boolean(busy) }, t('save')), keyState?.configured ? h('button', { className: `${TW.button} ${TW.secondary}`, type: 'button', onClick: deleteKey, disabled: Boolean(busy) }, t('delete')) : null)), h('div', { className: keyState?.configured ? 'dss-text-xs dss-leading-5 dss-text-[var(--dsw-alias-state-success-primary)]' : 'dss-text-xs dss-leading-5 dss-text-[var(--dsw-alias-state-warn-primary)]' }, keyState?.configured ? `${t('configured')}${keyState.source ? ` · ${t('keySource')}: ${keyState.source}` : ''}` : t('notConfigured')));
+            const depsSection = h('div', { className: TW.card }, h('h2', { className: TW.title }, t('dependencies')), h('p', { className: TW.hint }, 'ffmpeg / ffprobe / libopus'), deps
+                ? h('div', { className: 'dss-space-y-2' }, h('div', { className: 'dss-row' }, h('span', { className: 'dss-cell' }, t('ffmpeg')), h('span', { className: 'dss-cell dss-mono' }, deps.ffmpeg?.found ? `${deps.ffmpeg.path} · ${deps.ffmpeg.version || ''}` : t('missing')), h('span', { className: 'dss-badge' }, h('span', { className: 'dss-dot', 'data-tone': deps.ffmpeg?.found ? 'ok' : 'error' }), deps.ffmpeg?.found ? t('found') : t('missing'))), h('div', { className: 'dss-row' }, h('span', { className: 'dss-cell' }, t('ffprobe')), h('span', { className: 'dss-cell dss-mono' }, deps.ffprobe?.found ? `${deps.ffprobe.path} · ${deps.ffprobe.version || ''}` : t('missing')), h('span', { className: 'dss-badge' }, h('span', { className: 'dss-dot', 'data-tone': deps.ffprobe?.found ? 'ok' : 'error' }), deps.ffprobe?.found ? t('found') : t('missing'))), h('div', { className: 'dss-row' }, h('span', { className: 'dss-cell' }, t('libopus')), h('span', { className: 'dss-cell' }, deps.libopus ? t('found') : t('missing')), h('span', { className: 'dss-badge' }, h('span', { className: 'dss-dot', 'data-tone': deps.libopus ? 'ok' : 'error' }), deps.libopus ? t('found') : t('missing'))))
+                : h('div', { className: 'dss-hint' }, t('loading')), h('div', { className: 'dss-flex dss-flex-wrap dss-gap-2 dss-pt-1' }, h('button', { className: `${TW.button} ${TW.secondary}`, type: 'button', onClick: checkDeps, disabled: Boolean(busy) }, t('check')), !deps?.ok ? h('button', { className: `${TW.button} ${TW.primary}`, type: 'button', onClick: installFfmpeg, disabled: Boolean(busy) }, busy === 'install' ? t('installing') : t('install')) : null), installInfo?.code === 'root-required'
                 ? h('div', null, h('div', { className: 'dss-warn', style: { marginTop: '10px' } }, `${t('rootRequired')}. ${t('rootHint')}`), h('pre', { className: 'dss-pre' }, installInfo.command || 'sudo apt-get update && sudo apt-get install -y ffmpeg'), h('button', { className: 'dss-btn', type: 'button', onClick: () => copyCommand(installInfo.command || 'sudo apt-get update && sudo apt-get install -y ffmpeg') }, t('copy')))
                 : null);
-            const routeSection = h('div', { className: 'dss-card-section' }, h('h3', null, t('route')), h('p', null, t('routeHint')), h('div', { className: 'dss-inline' }, h('span', { className: 'dss-dot', 'data-tone': route?.active ? 'ok' : (route?.conflict ? 'error' : 'warn') }), h('span', null, route?.active ? t('routeActive') : (route?.conflict ? t('routeConflict') : t('routeInactive')))), route?.conflict ? h('div', { className: 'dss-err', style: { marginTop: '6px' } }, route.conflict) : null);
+            const routeSection = h('div', { className: TW.card }, h('h2', { className: TW.title }, t('route')), h('p', { className: TW.hint }, t('routeHint')), h('div', { className: 'dss-flex dss-items-center dss-gap-2 dss-text-xs dss-text-[var(--dsw-alias-label-primary)]' }, h('span', { className: 'dss-dot', 'data-tone': route?.active ? 'ok' : (route?.conflict ? 'error' : 'warn') }), h('span', null, route?.active ? t('routeActive') : (route?.conflict ? t('routeConflict') : t('routeInactive')))), route?.conflict ? h('div', { className: 'dss-err', style: { marginTop: '6px' } }, route.conflict) : null);
             // EN: Settings combines key, Edge, MCP, dependencies and route health.
             // RU: Настройки объединяют ключ, Edge, MCP, зависимости и состояние маршрута.
-            const settingsView = h('div', { className: 'dss-grid', style: { gridTemplateColumns: '1fr' } }, keySection, h('div', { className: 'dss-card-section' }, h('h3', null, t('settings')), h(Field, { label: t('voice') }, h('select', {
-                className: 'dss-select', value: settings.voiceId || 'stella',
+            const settingsView = h('div', { className: 'dss-grid dss-gap-4' }, keySection, h('div', { className: TW.card }, h('h2', { className: TW.title }, t('settings')), h(Field, { label: t('voice') }, h('select', {
+                className: TW.select, value: settings.voiceId || 'stella',
                 onChange: (e) => setForm({ ...settings, voiceId: e.target.value }),
             }, h('option', { value: 'stella' }, t('voiceStella')), h('option', { value: 'tide' }, t('voiceTide')))), h(Field, { label: t('qualityLabel') }, h('select', {
-                className: 'dss-select', value: settings.ttsQuality || '64',
+                className: TW.select, value: settings.ttsQuality || '64',
                 onChange: (e) => setForm({ ...settings, ttsQuality: e.target.value }),
             }, ['64', '96', '128', '160', '192', '256', 'dynamic'].map((value) => h('option', { key: value, value }, qualityText(value, t))))), h(Field, { label: t('edgeLanguage') }, h('select', {
-                className: 'dss-select', value: settings.edgeLanguage || 'auto',
+                className: TW.select, value: settings.edgeLanguage || 'auto',
                 onChange: (e) => setForm({ ...settings, edgeLanguage: e.target.value }),
-            }, h('option', { value: 'auto' }, t('edgeAuto')), h('option', { value: 'ru' }, t('edgeRu')), h('option', { value: 'en' }, t('edgeEn')))), h('label', { className: 'dss-check', style: { marginBottom: '14px' } }, h('input', {
-                type: 'checkbox', checked: settings.edgeEnabled !== false,
+            }, h('option', { value: 'auto' }, t('edgeAuto')), h('option', { value: 'ru' }, t('edgeRu')), h('option', { value: 'en' }, t('edgeEn')))), h('label', { className: TW.check }, h('input', {
+                className: TW.checkbox, type: 'checkbox', checked: settings.edgeEnabled !== false,
                 onChange: (e) => setForm({ ...settings, edgeEnabled: e.target.checked }),
-            }), h('span', null, h('strong', null, t('edgePrimary')), h('span', { className: 'dss-hint' }, t('edgeHint')))), h('div', { className: 'dss-hint', style: { marginBottom: '14px' } }, 'Клеопатра: ru-RU-SvetlanaNeural / en-US-AriaNeural · Македонский: ru-RU-DmitryNeural / en-US-GuyNeural'), h(Field, { label: t('maxChars') }, h('input', {
-                className: 'dss-input', type: 'number', min: 100, max: 9000,
+            }), h('span', { className: 'dss-space-y-0.5' }, h('strong', { className: 'dss-block dss-text-xs dss-font-medium dss-text-[var(--dsw-alias-label-primary)]' }, t('edgePrimary')), h('span', { className: TW.hint }, t('edgeHint')))), h('div', { className: TW.hint }, 'Клеопатра: ru-RU-SvetlanaNeural / en-US-AriaNeural · Македонский: ru-RU-DmitryNeural / en-US-GuyNeural'), h(Field, { label: t('maxChars') }, h('input', {
+                className: TW.input, type: 'number', min: 100, max: 9000,
                 value: settings.ttsMaxChars || 4000,
                 onChange: (e) => setForm({ ...settings, ttsMaxChars: Number(e.target.value) || 4000 }),
             })), h(Field, { label: t('telegramHome'), hint: 'default' }, h('input', {
-                className: 'dss-input', type: 'text',
+                className: TW.input, type: 'text',
                 value: settings.telegramHome || 'default',
                 onChange: (e) => setForm({ ...settings, telegramHome: e.target.value }),
-            })), h('label', { className: 'dss-check' }, h('input', {
-                type: 'checkbox', checked: Boolean(settings.alwaysVoice),
+            })), h('label', { className: TW.check }, h('input', {
+                className: TW.checkbox, type: 'checkbox', checked: Boolean(settings.alwaysVoice),
                 onChange: (e) => setForm({ ...settings, alwaysVoice: e.target.checked }),
-            }), h('span', null, h('strong', null, t('alwaysVoice')), h('span', { className: 'dss-hint' }, t('alwaysVoiceHint')))), h('div', { className: 'dss-warn', style: { marginTop: '10px' } }, t('russianWarning')), h('div', { className: 'dss-inline', style: { marginTop: '14px' } }, h('button', { className: 'dss-btn', 'data-kind': 'primary', type: 'button', onClick: saveForm, disabled: Boolean(busy) }, t('saveSettings')), h('button', { className: 'dss-btn', type: 'button', onClick: testVoice, disabled: Boolean(busy) }, busy === 'test' ? t('playing') : t('testVoice')))), h('div', { className: 'dss-card-section' }, h('h3', null, 'Edge TTS'), h('div', { className: 'dss-inline' }, h('span', { className: 'dss-dot', 'data-tone': edge?.available ? 'ok' : 'error' }), h('span', null, edge?.available ? t('edgeAvailable') : t('edgeMissing'))), edge?.error ? h('div', { className: 'dss-err', style: { marginTop: '6px' } }, edge.error) : null), h('div', { className: 'dss-card-section' }, h('h3', null, t('mcpService')), h('p', null, t('mcpEndpoint')), h('div', { className: 'dss-inline' }, h('code', { className: 'dss-mono' }, 'http://127.0.0.1:3080/deepseek-speech/mcp'), h('button', { className: 'dss-btn', 'data-kind': 'small', type: 'button', onClick: () => copyCommand('http://127.0.0.1:3080/deepseek-speech/mcp') }, t('copyEndpoint'))), h('div', { className: 'dss-inline', style: { marginTop: '8px' } }, h('span', { className: 'dss-dot', 'data-tone': mcp?.available ? 'ok' : 'error' }), h('span', null, mcp?.available ? t('mcpReady') : t('mcpMissing'))), mcp?.error ? h('div', { className: 'dss-err', style: { marginTop: '6px' } }, mcp.error) : null, h('div', { className: 'dss-hint', style: { marginTop: '8px' } }, `${t('mcpTools')}: transcribe_audio, synthesize_speech, speech_status, speech_stats, list_voices`)), depsSection, routeSection);
+            }), h('span', { className: 'dss-space-y-0.5' }, h('strong', { className: 'dss-block dss-text-xs dss-font-medium dss-text-[var(--dsw-alias-label-primary)]' }, t('alwaysVoice')), h('span', { className: TW.hint }, t('alwaysVoiceHint')))), h('div', { className: 'dss-rounded-lg dss-border dss-border-[var(--dsw-alias-state-warn-primary)] dss-bg-[var(--dsw-alias-bg-layer-2)] dss-p-3 dss-text-xs dss-leading-5 dss-text-[var(--dsw-alias-state-warn-primary)]' }, t('russianWarning')), h('div', { className: 'dss-flex dss-flex-wrap dss-gap-2 dss-pt-1' }, h('button', { className: `${TW.button} ${TW.primary}`, type: 'button', onClick: saveForm, disabled: Boolean(busy) }, t('saveSettings')), h('button', { className: `${TW.button} ${TW.secondary}`, type: 'button', onClick: testVoice, disabled: Boolean(busy) }, busy === 'test' ? t('playing') : t('testVoice')))), h('div', { className: TW.card }, h('h2', { className: TW.title }, 'Edge TTS'), h('div', { className: 'dss-flex dss-items-center dss-gap-2 dss-text-xs dss-text-[var(--dsw-alias-label-primary)]' }, h('span', { className: 'dss-dot', 'data-tone': edge?.available ? 'ok' : 'error' }), h('span', null, edge?.available ? t('edgeAvailable') : t('edgeMissing'))), edge?.error ? h('div', { className: 'dss-err', style: { marginTop: '6px' } }, edge.error) : null), h('div', { className: TW.card }, h('h2', { className: TW.title }, t('mcpService')), h('p', { className: TW.hint }, t('mcpEndpoint')), h('div', { className: 'dss-inline' }, h('code', { className: 'dss-rounded-md dss-bg-[var(--dsw-alias-bg-layer-2)] dss-px-2 dss-py-1 dss-font-mono dss-text-[11px] dss-text-[var(--dsw-alias-label-primary)]' }, 'http://127.0.0.1:3080/deepseek-speech/mcp'), h('button', { className: `${TW.button} ${TW.secondary}`, type: 'button', onClick: () => copyCommand('http://127.0.0.1:3080/deepseek-speech/mcp') }, t('copyEndpoint'))), h('div', { className: 'dss-flex dss-items-center dss-gap-2 dss-text-xs dss-text-[var(--dsw-alias-label-primary)]' }, h('span', { className: 'dss-dot', 'data-tone': mcp?.available ? 'ok' : 'error' }), h('span', null, mcp?.available ? t('mcpReady') : t('mcpMissing'))), mcp?.error ? h('div', { className: 'dss-err', style: { marginTop: '6px' } }, mcp.error) : null, h('div', { className: 'dss-hint', style: { marginTop: '8px' } }, `${t('mcpTools')}: transcribe_audio, synthesize_speech, speech_status, speech_stats, list_voices`)), depsSection, routeSection);
             return h('div', { className: 'dss-root' }, h('style', null, CSS), h('div', { className: 'dss-wrap' }, header, error ? h('div', { className: 'dss-err' }, error) : null, notice ? h('div', { className: 'dss-ok' }, notice) : null, tabs, (surface === 'main' && tab === 'history') ? h(React.Fragment, null, cards, historyView) : null, (surface === 'settings' || (surface === 'main' && tab === 'settings')) ? settingsView : null));
         }
         function apply(ctx) {
+            // EN: Load the compiled Tailwind utilities once; they are scoped to .dss-root.
+            // RU: Один раз подключаем собранные Tailwind-утилиты; они ограничены .dss-root.
+            if (typeof document !== 'undefined' && !document.querySelector('link[data-deepseek-speech-css]')) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = '/deepseek-speech/client.css';
+                link.setAttribute('data-deepseek-speech-css', '');
+                document.head.appendChild(link);
+            }
             ctx.effect(() => ctx.locale.register(NS, { en, ru }), 'deepseek-speech: dictionaries');
             const t = ctx.locale.bind(NS);
             ctx.slots.inject('main', () => ctx.slots.register({
