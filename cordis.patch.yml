@@ -1,0 +1,12 @@
+- insert:
+    - id: deepseek-speech
+      name: "@local/dsh-deepseek-speech"
+      config:
+        apiKeyEnv: DEEPSEEK_API_KEY
+        baseUrl: https://api.deepseek.com
+        telegramHome: default
+        historyLimit: 500
+        asrChunkSeconds: 110
+        asrMaxDurationSeconds: 600
+        ffmpegPath: ""
+        ffprobePath: ""

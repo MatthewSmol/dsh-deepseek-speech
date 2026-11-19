@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "DeepSeek speech",
+    "description": "Transcribe Telegram voice messages with DeepSeek ASR, speak replies with DeepSeek TTS, and review duration, cost, tokens and latency in the sidebar."
+  }
+}

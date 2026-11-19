@@ -1,0 +1,11 @@
+node_modules/
+test/tmp/
+data/
+*.log
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.secret
+*.token
