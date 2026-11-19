@@ -77,7 +77,7 @@ Profile changes are persistent and require approval.
      ```bash
      sudo apt-get update && sudo apt-get install -y ffmpeg
      ```
-4. Choose a voice: `Stella` or `Tide`.
+4. Choose a voice: **Клеопатра** (API id `stella`) or **Македонский** (API id `tide`).
 5. Choose **OGG/Opus quality**: 64, 96, 128, 160, 192, 256 kbps, or **Dynamic VBR**.
 6. Keep **Always reply with voice** off unless every assistant reply should be spoken.
 7. Check **Telegram ASR route**:
@@ -268,7 +268,7 @@ git clone https://github.com/MatthewSmol/dsh-deepseek-speech.git
      ```bash
      sudo apt-get update && sudo apt-get install -y ffmpeg
      ```
-4. Выберите голос: `Stella` или `Tide`.
+4. Выберите голос: **Клеопатра** (API id `stella`) или **Македонский** (API id `tide`).
 5. Выберите **качество OGG/Opus**: 64, 96, 128, 160, 192, 256 кбит или **Dynamic VBR**.
 6. Оставьте **«Всегда отвечать голосом»** выключенной, если не нужно озвучивать каждый ответ.
 7. Проверьте **Telegram ASR route**:
