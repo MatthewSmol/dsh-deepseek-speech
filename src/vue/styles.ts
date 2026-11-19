@@ -70,7 +70,7 @@ export const legacyCss = `
 
   /* EN: Settings layout and controls; scoped CSS only. */
   /* RU: Раскладка и контролы настроек; только scoped CSS. */
-  .settings-stack { display: flex; flex-direction: column; gap: 16px; }
+  .settings-stack { display: flex; flex-direction: column; gap: 16px; max-height: calc(100vh - 220px); overflow-y: auto; overscroll-behavior: contain; padding-right: 4px; scrollbar-gutter: stable; }
   .settings-card { box-sizing: border-box; width: 100%; min-width: 0; padding: 20px; border: 1px solid var(--dsw-alias-border-l2); border-radius: 16px; background: var(--dsw-alias-bg-layer-1); box-shadow: 0 1px 2px rgba(0,0,0,.05); }
   .settings-card > * + * { margin-top: 12px; }
   .settings-title { margin: 0; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--dsw-alias-label-primary); }
