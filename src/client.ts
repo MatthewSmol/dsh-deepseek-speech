@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { SpeechApp } from './vue/SpeechApp'
 import { en, ru } from './locales'
 import { legacyCss } from './vue/styles'
+import tailwindCss from '../dist/client.css?inline'
 
 /**
  * EN: DSH client entry. DSH's slot host is React, so this file only provides a
@@ -53,23 +54,18 @@ import { legacyCss } from './vue/styles'
     }
 
     function apply(ctx: any) {
-      // EN: Load the compiled Tailwind utilities once; they are scoped to .dss-root.
-      // RU: Один раз подключаем собранные Tailwind-утилиты; они ограничены .dss-root.
-      if (typeof document !== 'undefined' && !document.querySelector('link[data-deepseek-speech-css]')) {
-        const link = document.createElement('link')
-        link.rel = 'stylesheet'
-        link.href = '/deepseek-speech/client.css'
-        link.setAttribute('data-deepseek-speech-css', '')
-        document.head.appendChild(link)
-      }
+      // EN: Tailwind is inlined at build time, so it works even if the CSS route
+      // is unavailable. Both styles are scoped to .dss-root.
+      // RU: Tailwind встроен на этапе сборки, поэтому работает даже без CSS-маршрута.
+      // Оба стиля ограничены .dss-root.
       ctx.effect(() => {
         if (typeof document === 'undefined') return () => {}
         const style = document.createElement('style')
-        style.textContent = legacyCss
-        style.setAttribute('data-deepseek-speech-legacy', '')
+        style.textContent = `${tailwindCss}\n${legacyCss}`
+        style.setAttribute('data-deepseek-speech-styles', '')
         document.head.appendChild(style)
         return () => style.remove()
-      }, 'deepseek-speech: legacy styles')
+      }, 'deepseek-speech: styles')
       ctx.effect(() => ctx.locale.register(NS, { en, ru }), 'deepseek-speech: dictionaries')
       const t = ctx.locale.bind(NS)
 

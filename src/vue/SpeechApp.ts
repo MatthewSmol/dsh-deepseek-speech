@@ -292,7 +292,7 @@ export const SpeechApp = defineComponent({
           <div class="dss-foot">{{ t('historyNote') }}</div>
         </template>
 
-        <div v-if="surface === 'settings' || (surface === 'main' && tab === 'settings')" class="dss-grid dss-gap-4">
+        <div v-if="surface === 'settings' || (surface === 'main' && tab === 'settings')" class="dss-flex dss-flex-col dss-gap-4">
           <div :class="TW.card">
             <h2 :class="TW.title">{{ t('apiKey') }}</h2>
             <p :class="TW.hint">{{ t('apiKeyHint') }}</p>
