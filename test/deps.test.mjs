@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { resolveDeps } from '../lib/deps.js'
+import { resolveDeps } from '../dist/lib/deps.js'
 
 test('global ffmpeg/ffprobe/libopus are detected', async (t) => {
   const deps = await resolveDeps()

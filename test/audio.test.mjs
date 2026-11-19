@@ -3,9 +3,9 @@ import assert from 'node:assert/strict'
 import { mkdtemp, rm, stat } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { resolveDeps, runCommand, toOggOpus, probeAudio, qualityArgs } from '../lib/deps.js'
-import { billedChars, estimateTokens } from '../lib/deepseek.js'
-import { prepareSpeechText } from '../lib/speech.js'
+import { resolveDeps, runCommand, toOggOpus, probeAudio, qualityArgs } from '../dist/lib/deps.js'
+import { billedChars, estimateTokens } from '../dist/lib/deepseek.js'
+import { prepareSpeechText } from '../dist/lib/speech.js'
 
 test('quality presets produce OGG/Opus arguments', () => {
   const cbr = qualityArgs('128')

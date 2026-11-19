@@ -1,3 +1,11 @@
+/**
+ * EN: Persistence layer. Settings and history are stored under
+ * `$DSH_HOME/deepseek-speech` with atomic writes and mode 0600. No key or
+ * audio bytes are written here.
+ * RU: Слой хранения. Настройки и история лежат в
+ * `$DSH_HOME/deepseek-speech`, записываются атомарно с правами 0600.
+ * Ключи и аудио здесь не сохраняются.
+ */
 import { mkdirSync, readFileSync, chmodSync, existsSync } from 'node:fs'
 import { mkdir, writeFile, rename, chmod, unlink } from 'node:fs/promises'
 import { join, dirname } from 'node:path'
@@ -8,6 +16,10 @@ export function dshHome() {
   return process.env.DSH_HOME || join(homedir(), '.dsh')
 }
 
+/**
+ * EN: All plugin data stays under DSH_HOME, never under the repository.
+ * RU: Все данные плагина находятся в DSH_HOME, а не в репозитории.
+ */
 export function dataDir() {
   return join(dshHome(), 'deepseek-speech')
 }
@@ -21,6 +33,10 @@ function readJson(file, fallback) {
   }
 }
 
+/**
+ * EN: Directories are created with 0700; settings/history files use 0600.
+ * RU: Каталоги создаются с 0700; файлы настроек/истории — с 0600.
+ */
 function ensureDirSync(dir) {
   mkdirSync(dir, { recursive: true, mode: 0o700 })
   try { chmodSync(dir, 0o700) } catch { /* best effort */ }
@@ -40,7 +56,13 @@ async function writeJsonAtomic(file, value) {
 }
 
 export class SettingsStore {
-  constructor(defaults, logger) {
+  defaults: any
+  logger: any
+  file: string
+  state: any
+  writeChain: Promise<any>
+
+  constructor(defaults: any, logger: any) {
     this.defaults = { ...defaults }
     this.logger = logger
     this.file = join(dataDir(), 'settings.json')
@@ -79,6 +101,11 @@ function asInt(value, fallback, min, max) {
   return Math.max(min, Math.min(max, Math.round(n)))
 }
 
+/**
+ * EN: Normalizes every setting before it reaches the runtime, including Edge
+ * enable/language and quality.
+ * RU: Нормализует каждую настройку до runtime, включая Edge и качество.
+ */
 function sanitizeSettings(raw, defaults) {
   const voiceId = raw.voiceId === 'tide' ? 'tide' : 'stella'
   const quality = normalizeQuality(raw.ttsQuality)
@@ -135,7 +162,13 @@ export function historyTotals(entries) {
 }
 
 export class HistoryStore {
-  constructor(limit, logger) {
+  limit: number
+  logger: any
+  file: string
+  entries: any[]
+  writeChain: Promise<any>
+
+  constructor(limit: any, logger: any) {
     this.limit = Math.max(1, Math.min(5000, Number(limit) || 500))
     this.logger = logger
     this.file = join(dataDir(), 'history.json')
@@ -147,6 +180,10 @@ export class HistoryStore {
     this.entries = rows.filter(isEntry).slice(-this.limit)
   }
 
+  /**
+   * EN: Sanitizes one entry, trims the ring buffer, and persists asynchronously.
+   * RU: Проверяет запись, обрезает кольцевой буфер и сохраняет асинхронно.
+   */
   add(entry) {
     const row = sanitizeEntry(entry)
     this.entries.push(row)

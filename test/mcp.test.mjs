@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { mcpStatus } from '../lib/mcp.js'
+import { mcpStatus } from '../dist/lib/mcp.js'
 
 test('MCP SDK is importable', async () => {
   const status = await mcpStatus()

@@ -1,3 +1,11 @@
+/**
+ * EN: Edge TTS provider. Uses the unofficial Microsoft Read Aloud WebSocket
+ * through `msedge-tts`, selects RU/EN neural voices, escapes SSML input and
+ * returns MP3 bytes. No API key is required.
+ * RU: Провайдер Edge TTS. Использует неофициальный Microsoft Read Aloud
+ * WebSocket через `msedge-tts`, выбирает русские/английские нейроголоса,
+ * экранирует SSML и возвращает MP3. API-ключ не нужен.
+ */
 import { Buffer } from 'node:buffer'
 
 export const EDGE_VOICES = {
@@ -12,6 +20,11 @@ const EDGE_FORMATS = [
 
 let edgeModulePromise = null
 
+/**
+ * EN: Dynamic import keeps the plugin loadable even when the optional Edge
+ * package is absent.
+ * RU: Динамический импорт позволяет плагину загружаться даже без Edge-пакета.
+ */
 export async function loadEdgeModule() {
   if (!edgeModulePromise) {
     edgeModulePromise = import('msedge-tts').catch((err) => {
@@ -61,11 +74,15 @@ export function escapeXml(text) {
   }[ch]))
 }
 
-function collectStream(audioStream, timeoutMs) {
+/**
+ * EN: Collects a Node Readable into one Buffer and enforces a hard timeout.
+ * RU: Собирает Node Readable в один Buffer и ограничивает время ожидания.
+ */
+function collectStream(audioStream: any, timeoutMs: number): Promise<Buffer> {
   return new Promise((resolve, reject) => {
-    const chunks = []
+    const chunks: Buffer[] = []
     let settled = false
-    const finish = (err) => {
+    const finish = (err?: any) => {
       if (settled) return
       settled = true
       clearTimeout(timer)
@@ -80,13 +97,15 @@ function collectStream(audioStream, timeoutMs) {
   })
 }
 
-export async function synthesizeEdgeMp3({ text, voiceId = 'stella', language = 'auto', timeoutMs = 60000 }) {
+export async function synthesizeEdgeMp3({ text, voiceId = 'stella', language = 'auto', timeoutMs = 60000 }: { text: string; voiceId?: string; language?: string; timeoutMs?: number }): Promise<any> {
   const input = String(text || '').trim()
   if (!input) throw new Error('Nothing to synthesize')
   const lang = detectSpeechLanguage(input, language)
   const voice = edgeVoiceFor(voiceId, lang)
   const { MsEdgeTTS, OUTPUT_FORMAT } = await loadEdgeModule()
   let lastError = null
+  // EN: 96 kbps is preferred; 48 kbps is the compatibility fallback.
+  // RU: Предпочтителен 96 кбит; 48 кбит — совместимый fallback.
   for (const format of EDGE_FORMATS) {
     const tts = new MsEdgeTTS({
       connectionTimeoutMs: 10000,

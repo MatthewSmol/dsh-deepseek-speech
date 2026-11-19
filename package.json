@@ -5,20 +5,24 @@
   "type": "module",
   "description": "DeepSeek ASR, Edge/DeepSeek TTS, and an MCP service for Telegram voice messages with sidebar usage statistics.",
   "exports": {
-    ".": "./index.js",
-    "./client": "./client.js",
+    ".": "./dist/index.js",
+    "./client": "./dist/client.js",
     "./locale/*.json": "./locale/*.json",
     "./icon": "./icon.svg"
   },
   "files": [
-    "index.js",
+    "dist/**/*.js",
+    "src/**/*.ts",
+    "tsconfig.json",
+    "tsconfig.client.json",
     "client.js",
-    "lib/*.js",
+    "index.js",
     "cordis.patch.yml",
     "locale/*.json",
     "icon.svg",
     "README.md",
-    "scripts/*.sh"
+    "scripts/*.sh",
+    "scripts/*.mjs"
   ],
   "dsh": {
     "bundle": {
@@ -38,5 +42,15 @@
     "@modelcontextprotocol/server": "^2.4.0",
     "msedge-tts": "^2.1.1",
     "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "^5.9.3"
+  },
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.client.json && node scripts/sync-compat.mjs",
+    "check": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.client.json --noEmit",
+    "test": "npm run build && node --test test/*.test.mjs"
   }
 }

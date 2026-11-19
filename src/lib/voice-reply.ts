@@ -1,7 +1,17 @@
+/**
+ * EN: Telegram voice-reply policy. A completed msgw-* turn is spoken only when
+ * the prompt asks for voice or the checkbox is enabled; negative wording wins.
+ * RU: Политика голосовых ответов Telegram. Завершённый ход msgw-* озвучивается
+ * только по просьбе в промпте или галочке; отрицание имеет приоритет.
+ */
 import { synthesizeVoice } from './speech.js'
 import { estimateTokens, ttsCostUsd, redactError } from './deepseek.js'
 import { previewText } from './store.js'
 
+/**
+ * EN: Positive and negative phrase lists. Negative regex is checked first.
+ * RU: Списки положительных и отрицательных фраз. Отрицательный regex проверяется первым.
+ */
 export const POSITIVE_RE = /(ответь\s+голосом|ответить\s+голосом|голосов(ой|ым)\s+ответ|озвучь|прочитай\s+вслух|скажи\s+голосом|voice\s+reply|reply\s+with\s+voice|send\s+(a\s+)?voice|read\s+aloud)/i
 export const NEGATIVE_RE = /(не\s+озвучивай|без\s+голоса|не\s+голосом|только\s+текстом|text\s+only|don'?t\s+speak|no\s+voice)/i
 
@@ -28,7 +38,14 @@ function respondedText(event) {
   return textOfMessage(event.data?.message)
 }
 
-function makeSessionState() {
+interface SessionState {
+  pendingVoice: boolean
+  lastText: string
+  sent: boolean
+  timer: NodeJS.Timeout | null
+}
+
+function makeSessionState(): SessionState {
   return {
     pendingVoice: false,
     lastText: '',
@@ -37,11 +54,11 @@ function makeSessionState() {
   }
 }
 
-export function installVoiceReply({ ctx, config, settingsStore, history, getDeps, logger }) {
-  const states = new Map()
-  const timers = new Set()
+export function installVoiceReply({ ctx, config, settingsStore, history, getDeps, logger }: any) {
+  const states = new Map<string, SessionState>()
+  const timers = new Set<NodeJS.Timeout>()
 
-  const clearTimer = (state) => {
+  const clearTimer = (state: SessionState) => {
     if (state?.timer) {
       clearTimeout(state.timer)
       timers.delete(state.timer)
@@ -49,6 +66,12 @@ export function installVoiceReply({ ctx, config, settingsStore, history, getDeps
     }
   }
 
+  /**
+   * EN: Resolves dependencies lazily, synthesizes Edge-first, sends exactly one
+   * OGG voice note, then records success/failure in history.
+   * RU: Лениво разрешает зависимости, синтезирует Edge-first, отправляет ровно
+   * одно OGG-голосовое и записывает успех/ошибку в историю.
+   */
   const sendVoice = async (sessionId, text) => {
     const settings = settingsStore.get()
     const started = Date.now()
@@ -160,6 +183,8 @@ export function installVoiceReply({ ctx, config, settingsStore, history, getDeps
     state.sent = true
     const text = state.lastText
     clearTimer(state)
+    // EN: The 800 ms delay lets the final assistant message arrive first.
+    // RU: Задержка 800 мс даёт финальному сообщению ассистента прийти первым.
     const timer = setTimeout(() => {
       timers.delete(timer)
       state.timer = null

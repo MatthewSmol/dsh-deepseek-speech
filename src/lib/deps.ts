@@ -1,3 +1,11 @@
+/**
+ * EN: ffmpeg/ffprobe discovery, command execution, audio probing, WAV
+ * splitting and OGG/Opus encoding. All subprocesses are bounded and never
+ * receive credentials.
+ * RU: Поиск ffmpeg/ffprobe, запуск команд, анализ аудио, нарезка WAV и
+ * кодирование OGG/Opus. Все подпроцессы ограничены по времени и не получают
+ * секретов.
+ */
 import { spawn } from 'node:child_process'
 import { accessSync, constants } from 'node:fs'
 import { readdir, stat } from 'node:fs/promises'
@@ -5,7 +13,19 @@ import { join } from 'node:path'
 
 const MAX_OUTPUT = 1024 * 1024
 
-export function qualityArgs(quality) {
+export interface RunOptions {
+  timeoutMs?: number
+  env?: NodeJS.ProcessEnv
+  signal?: AbortSignal
+}
+
+export interface RunResult {
+  code: number
+  stdout: string
+  stderr: string
+}
+
+export function qualityArgs(quality: any) {
   const value = String(quality ?? '64').toLowerCase()
   if (value === 'dynamic' || value === 'vbr' || value === 'auto') {
     return {
@@ -30,7 +50,7 @@ export function qualityArgs(quality) {
   }
 }
 
-export function runCommand(command, args = [], { timeoutMs = 30000, env, signal } = {}) {
+export function runCommand(command: string, args: string[] = [], { timeoutMs = 30000, env, signal }: RunOptions = {}): Promise<RunResult> {
   return new Promise((resolve, reject) => {
     let child
     try {
@@ -45,7 +65,7 @@ export function runCommand(command, args = [], { timeoutMs = 30000, env, signal 
     let stdout = ''
     let stderr = ''
     let settled = false
-    const finish = (err, code) => {
+    const finish = (err: any, code = 0) => {
       if (settled) return
       settled = true
       clearTimeout(timer)
@@ -53,6 +73,8 @@ export function runCommand(command, args = [], { timeoutMs = 30000, env, signal 
       if (err) reject(err)
       else resolve({ code, stdout, stderr })
     }
+    // EN: Kill runaway ffmpeg/ffprobe processes after the timeout.
+    // RU: Убиваем зависшие ffmpeg/ffprobe по таймауту.
     const timer = setTimeout(() => {
       try { child.kill('SIGKILL') } catch { /* best effort */ }
       finish(new Error(`${command} timed out after ${timeoutMs}ms`))
@@ -76,6 +98,10 @@ export function runCommand(command, args = [], { timeoutMs = 30000, env, signal 
   })
 }
 
+/**
+ * EN: Checks the executable bit before attempting a spawn.
+ * RU: Проверяет бит исполнения перед запуском.
+ */
 function isExecutable(path) {
   try {
     accessSync(path, constants.X_OK)
@@ -85,7 +111,11 @@ function isExecutable(path) {
   }
 }
 
-async function firstWorking(candidates, args) {
+/**
+ * EN: Tries candidates in order and returns the first successful version probe.
+ * RU: Перебирает кандидатов и возвращает первый успешный probe версии.
+ */
+async function firstWorking(candidates: Array<string | undefined>, args: string[]): Promise<{ path: string; version: string } | null> {
   for (const command of candidates) {
     if (!command) continue
     if (command.includes('/') && !isExecutable(command)) continue
@@ -101,7 +131,12 @@ async function firstWorking(candidates, args) {
   return null
 }
 
-export async function resolveDeps(config = {}) {
+/**
+ * EN: Candidate paths are intentionally explicit so a DSH restart does not
+ * depend on shell PATH.
+ * RU: Пути-кандидаты заданы явно, чтобы запуск DSH не зависел от PATH shell.
+ */
+export async function resolveDeps(config: any = {}): Promise<any> {
   const ffmpegCandidates = [
     config.ffmpegPath,
     process.env.FFMPEG_PATH,
@@ -141,11 +176,13 @@ export async function resolveDeps(config = {}) {
   }
 }
 
-export async function installFfmpeg(logger) {
+export async function installFfmpeg(logger: any): Promise<any> {
   const before = await resolveDeps()
   if (before.ffmpeg.found && before.ffprobe.found && before.libopus) {
     return { ok: true, alreadyInstalled: true, deps: before }
   }
+  // EN: Never prompt for a password from a web request; only `sudo -n`.
+  // RU: Никогда не запрашиваем пароль из web-запроса; только `sudo -n`.
   let sudoProbe
   try {
     sudoProbe = await runCommand('sudo', ['-n', 'true'], { timeoutMs: 10000 })
@@ -192,7 +229,7 @@ export async function installFfmpeg(logger) {
   return { ok: true, installed: true, deps: after }
 }
 
-export async function probeAudio(path, ffprobePath) {
+export async function probeAudio(path: string, ffprobePath: string): Promise<any> {
   if (!ffprobePath) throw new Error('ffprobe is not available')
   const out = await runCommand(ffprobePath, [
     '-v', 'error',
@@ -218,7 +255,7 @@ export async function probeAudio(path, ffprobePath) {
   }
 }
 
-export async function toWav16k(ffmpegPath, input, output, signal) {
+export async function toWav16k(ffmpegPath: string, input: string, output: string, signal?: AbortSignal): Promise<string> {
   if (!ffmpegPath) throw new Error('ffmpeg is not available')
   const out = await runCommand(ffmpegPath, [
     '-y', '-hide_banner', '-loglevel', 'error',
@@ -230,7 +267,7 @@ export async function toWav16k(ffmpegPath, input, output, signal) {
   return output
 }
 
-export async function splitWav(ffmpegPath, input, dir, chunkSeconds) {
+export async function splitWav(ffmpegPath: string, input: string, dir: string, chunkSeconds: number): Promise<any[]> {
   const out = await runCommand(ffmpegPath, [
     '-y', '-hide_banner', '-loglevel', 'error',
     '-i', input,
@@ -252,7 +289,7 @@ export async function splitWav(ffmpegPath, input, dir, chunkSeconds) {
   return chunks
 }
 
-export async function toOggOpus(ffmpegPath, input, output, quality, signal) {
+export async function toOggOpus(ffmpegPath: string, input: string, output: string, quality: any, signal?: AbortSignal): Promise<any> {
   if (!ffmpegPath) throw new Error('ffmpeg is not available')
   const q = qualityArgs(quality)
   const out = await runCommand(ffmpegPath, [

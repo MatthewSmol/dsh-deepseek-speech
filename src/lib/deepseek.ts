@@ -1,7 +1,16 @@
+/**
+ * EN: Minimal DeepSeek ASR/TTS HTTP client plus cost/token estimates and
+ * error redaction. The API key is passed in memory only.
+ * RU: Минимальный HTTP-клиент DeepSeek ASR/TTS, оценки стоимости/токенов и
+ * очистка ошибок. API-ключ передаётся только в памяти.
+ */
 const DEFAULT_BASE = 'https://api.deepseek.com'
 
 export class DeepSeekApiError extends Error {
-  constructor(message, { status = 0, code = 'deepseek-error' } = {}) {
+  status: number
+  code: string
+
+  constructor(message: string, { status = 0, code = 'deepseek-error' }: { status?: number; code?: string } = {}) {
     super(message)
     this.name = 'DeepSeekApiError'
     this.status = status
@@ -38,6 +47,10 @@ export async function describeApiKey(ctx, apiKeyEnv) {
   }
 }
 
+/**
+ * EN: Builds an AbortSignal that fires after `ms` or when the parent aborts.
+ * RU: Создаёт AbortSignal, который срабатывает через `ms` или при отмене родителя.
+ */
 function timeoutSignal(ms, parent) {
   const timeout = AbortSignal.timeout(Math.max(1000, Number(ms) || 120000))
   if (!parent) return timeout
@@ -45,6 +58,10 @@ function timeoutSignal(ms, parent) {
   return parent
 }
 
+/**
+ * EN: Extracts a short provider error without dumping the whole response.
+ * RU: Извлекает короткий текст ошибки провайдера, не выводя весь ответ.
+ */
 function errorText(data, fallback) {
   const err = data?.error
   if (typeof err === 'string') return err
@@ -53,6 +70,12 @@ function errorText(data, fallback) {
   return fallback
 }
 
+/**
+ * EN: The multipart request uses the 16 kHz WAV produced by ffmpeg; the key is
+ * only in the Authorization header.
+ * RU: Multipart-запрос использует WAV 16 kHz после ffmpeg; ключ передаётся
+ * только в заголовке Authorization.
+ */
 export async function transcribeWav({ key, baseUrl, bytes, signal, timeoutMs = 120000 }) {
   if (!key) throw new DeepSeekApiError('DeepSeek API key is not configured', { code: 'no-key' })
   const form = new FormData()
@@ -85,6 +108,10 @@ export async function transcribeWav({ key, baseUrl, bytes, signal, timeoutMs = 1
   }
 }
 
+/**
+ * EN: JSON TTS request. The API returns a WAV payload that ffmpeg later encodes.
+ * RU: JSON-запрос TTS. API возвращает WAV, который затем кодирует ffmpeg.
+ */
 export async function synthesizeWav({ key, baseUrl, text, voiceId = 'stella', signal, timeoutMs = 180000 }) {
   if (!key) throw new DeepSeekApiError('DeepSeek API key is not configured', { code: 'no-key' })
   const body = {

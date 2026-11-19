@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "moduleDetection": "legacy",
+    "types": [
+      "node"
+    ],
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": [
+    "src/client.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

@@ -1,3 +1,9 @@
+/**
+ * EN: Speech orchestration. Converts incoming audio for DeepSeek ASR and
+ * synthesizes voice with Edge TTS first, falling back to DeepSeek TTS.
+ * RU: Оркестрация речи. Готовит входящее аудио для DeepSeek ASR и
+ * синтезирует голос сначала через Edge TTS, затем откатывается на DeepSeek TTS.
+ */
 import { mkdtemp, writeFile, readFile, rm, stat } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -6,7 +12,10 @@ import { transcribeWav, synthesizeWav, billedChars, redactError } from './deepse
 import { synthesizeEdgeMp3, detectSpeechLanguage } from './edge.js'
 
 export class SpeechError extends Error {
-  constructor(message, { code = 'speech-error', status = 500 } = {}) {
+  code: string
+  status: number
+
+  constructor(message: string, { code = 'speech-error', status = 500 }: { code?: string; status?: number } = {}) {
     super(message)
     this.name = 'SpeechError'
     this.code = code
@@ -14,7 +23,7 @@ export class SpeechError extends Error {
   }
 }
 
-function extensionFor(mime) {
+function extensionFor(mime: any): string {
   const m = String(mime || '').toLowerCase()
   if (m.includes('ogg') || m.includes('opus')) return '.ogg'
   if (m.includes('mpeg') || m.includes('mp3')) return '.mp3'
@@ -42,7 +51,11 @@ export function prepareSpeechText(text, maxChars = 4000) {
   return out.trim()
 }
 
-export async function transcribeBuffer({ key, config, deps, bytes, mimeType, signal }) {
+/**
+ * EN: The temp directory is always removed in `finally`, including on abort.
+ * RU: Временный каталог всегда удаляется в `finally`, включая отмену.
+ */
+export async function transcribeBuffer({ key, config, deps, bytes, mimeType, signal }: { key: string; config: any; deps: any; bytes: Buffer; mimeType?: string; signal?: AbortSignal }): Promise<any> {
   if (!deps?.ffmpeg?.path || !deps?.ffprobe?.path) {
     throw new SpeechError('ffmpeg and ffprobe are required for audio conversion', { code: 'deps-missing', status: 503 })
   }
@@ -94,7 +107,11 @@ export async function transcribeBuffer({ key, config, deps, bytes, mimeType, sig
   }
 }
 
-async function synthesizeEdgeOgg({ config, deps, text, voiceId, quality, edgeLanguage, signal }) {
+/**
+ * EN: Edge returns MP3; this helper converts it to the final OGG/Opus.
+ * RU: Edge возвращает MP3; helper конвертирует его в итоговый OGG/Opus.
+ */
+async function synthesizeEdgeOgg({ config, deps, text, voiceId, quality, edgeLanguage, signal }: any): Promise<any> {
   const prepared = prepareSpeechText(text, config.ttsMaxChars)
   if (!prepared) throw new SpeechError('Nothing to synthesize', { code: 'empty-text', status: 400 })
   const edge = await synthesizeEdgeMp3({
@@ -136,7 +153,7 @@ async function synthesizeEdgeOgg({ config, deps, text, voiceId, quality, edgeLan
   }
 }
 
-export async function synthesizeDeepSeekOgg({ key, config, deps, text, voiceId, quality, signal }) {
+export async function synthesizeDeepSeekOgg({ key, config, deps, text, voiceId, quality, signal }: any): Promise<any> {
   if (!deps?.ffmpeg?.path || !deps?.ffprobe?.path) {
     throw new SpeechError('ffmpeg and ffprobe are required for OGG/Opus synthesis', { code: 'deps-missing', status: 503 })
   }
@@ -160,7 +177,7 @@ export async function synthesizeDeepSeekOgg({ key, config, deps, text, voiceId, 
     const wav = join(dir, 'tts.wav')
     const ogg = join(dir, 'reply.ogg')
     const started = Date.now()
-    const wavData = await synthesizeWav({
+    const wavData: any = await synthesizeWav({
       key,
       baseUrl: config.baseUrl,
       text: prepared,
@@ -206,11 +223,15 @@ export async function synthesizeVoice({
   edgeEnabled = true,
   edgeLanguage = 'auto',
   signal,
-}) {
+}: any): Promise<any> {
   if (!deps?.ffmpeg?.path || !deps?.ffprobe?.path) {
     throw new SpeechError('ffmpeg and ffprobe are required for OGG/Opus synthesis', { code: 'deps-missing', status: 503 })
   }
   let edgeError = null
+  // EN: Edge is attempted first. Any failure is kept as `edgeError` and the
+  // code continues to DeepSeek only when a key is available.
+  // RU: Сначала пробуем Edge. Любая ошибка сохраняется в `edgeError`, и код
+  // переходит к DeepSeek только при наличии ключа.
   if (edgeEnabled) {
     const started = Date.now()
     try {
@@ -221,6 +242,8 @@ export async function synthesizeVoice({
       edgeError = redactError(err)
     }
   }
+  // EN: Edge failed and no DeepSeek key exists: return one combined diagnostic.
+  // RU: Edge упал и ключа DeepSeek нет: возвращаем один общий диагностический текст.
   if (!key) {
     const suffix = edgeError ? `: ${edgeError}` : ''
     throw new SpeechError(`DeepSeek API key is not configured${suffix}`, { code: 'no-key', status: 503 })

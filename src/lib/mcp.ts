@@ -1,3 +1,11 @@
+/**
+ * EN: MCP Streamable HTTP service. Exposes transcribe/synthesize/status/stats/
+ * voices tools to DSH and external local MCP clients. The endpoint is
+ * loopback-only and reuses the same stores/routes as the UI.
+ * RU: MCP Streamable HTTP сервис. Отдаёт tools transcribe/synthesize/status/
+ * stats/voices для DSH и внешних локальных MCP-клиентов. Endpoint доступен
+ * только с loopback и использует те же хранилища/маршруты, что и UI.
+ */
 import { Buffer } from 'node:buffer'
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 import { isAbsolute, join, extname } from 'node:path'
@@ -47,6 +55,10 @@ export async function mcpStatus() {
   }
 }
 
+/**
+ * EN: Accepts IPv4/IPv6 loopback forms used by Node and proxies.
+ * RU: Принимает IPv4/IPv6 loopback-формы, которые используют Node и прокси.
+ */
 function isLoopback(value) {
   const address = String(value || '').toLowerCase().replace(/^\[|\]$/g, '')
   return address === 'localhost' || address === 'localhost.' || address === '::1'
@@ -90,6 +102,10 @@ function makeAsrRecord({ started, result, config, source }) {
   }
 }
 
+/**
+ * EN: Converts a TTS result into the same history shape as Telegram/UI calls.
+ * RU: Преобразует результат TTS в тот же формат истории, что Telegram/UI.
+ */
 function makeTtsRecord({ started, result, config, source }) {
   return {
     kind: 'tts',
@@ -116,6 +132,8 @@ function makeTtsRecord({ started, result, config, source }) {
 
 function registerTools(server, deps) {
   const { z } = deps
+  // EN: Transcribe accepts exactly one of base64 or a local audio path.
+  // RU: Transcribe принимает ровно один источник: base64 или локальный аудиофайл.
   server.registerTool('transcribe_audio', {
     title: 'Transcribe audio with DeepSeek ASR',
     description: 'Transcribe an audio file or base64 audio using DeepSeek ASR. Accepts Ogg, WAV, MP3, M4A or WebM; audio is converted and split locally.',
@@ -159,6 +177,8 @@ function registerTools(server, deps) {
     })
   })
 
+  // EN: Synthesis saves the OGG even when Telegram delivery is not requested.
+  // RU: Синтез сохраняет OGG, даже если доставка в Telegram не запрошена.
   server.registerTool('synthesize_speech', {
     title: 'Synthesize speech with Edge TTS or DeepSeek',
     description: 'Generate an OGG/Opus voice file. Edge TTS is primary (Russian and English), DeepSeek TTS is the fallback. Optionally send the voice note to Telegram.',
@@ -222,6 +242,8 @@ function registerTools(server, deps) {
     })
   })
 
+  // EN: Status tools intentionally return booleans/paths, never secret values.
+  // RU: Status-tools намеренно возвращают bool/пути, но не значения секретов.
   server.registerTool('speech_status', {
     title: 'DeepSeek speech status',
     description: 'Report key configuration, ffmpeg/ffprobe, Edge TTS, MCP and ASR route status without exposing secrets.',
@@ -241,6 +263,8 @@ function registerTools(server, deps) {
     })
   })
 
+  // EN: Stats are read from the bounded history store.
+  // RU: Статистика читается из ограниченной истории.
   server.registerTool('speech_stats', {
     title: 'DeepSeek speech statistics',
     description: 'Read aggregate speech statistics and recent ASR/TTS history.',
@@ -268,6 +292,8 @@ function registerTools(server, deps) {
   })
 }
 
+  // EN: Loopback guard is the MCP service boundary; there is no bearer token.
+  // RU: Loopback-проверка — граница MCP-сервиса; bearer-токена здесь нет.
 export async function handleMcpRequest({ ctx, config, settingsStore, history, getDeps, logger, getRouteStatus }, req, res) {
   if (!isLoopback(req.socket?.remoteAddress)) {
     res.statusCode = 403

@@ -170,16 +170,23 @@ History/settings are stored in `$DSH_HOME/deepseek-speech/`, outside the reposit
 | Russian DeepSeek voice sounds wrong | Use Edge for Russian, or text. |
 | Voice note is re-encoded | Telegram may transcode voice; the setting applies to the source OGG. |
 
-### Development
+### TypeScript source and development
+
+The authoritative source is TypeScript under `src/`; it has bilingual EN/RU comments. The runtime loads generated files from `dist/` and the compatibility entries `index.js`/`client.js`.
 
 ```bash
 pnpm install
-node --check index.js
-node --check client.js
-node --check lib/*.js
-node --test test/*.test.mjs
+pnpm build       # tsc host + client, then sync compatibility entries
+pnpm check       # type-check without emitting
+pnpm test        # builds, then runs node:test
 bash scripts/check-secrets.sh
 ```
+
+- `src/index.ts` — plugin entry, stores, routes, voice listener.
+- `src/lib/*.ts` — DeepSeek, Edge TTS, ffmpeg, ASR/TTS orchestration, MCP, storage, routing.
+- `src/client.ts` — DSH Web sidebar/settings client (plain browser script; no imports/exports).
+- `dist/` — generated JavaScript committed for DSH Git installs.
+- `client.js`/`index.js` — generated compatibility entries for DSH's cached loader; do not edit by hand.
 
 ---
 
@@ -352,13 +359,20 @@ DeepSeek не возвращает token usage для ASR/TTS. ASR тарифи�
 | Русский DeepSeek-голос плохой | Используйте Edge для русского или текст. |
 | Telegram перекодировал voice | Это нормально; настройка задаёт исходный OGG. |
 
-### Разработка
+### Исходники TypeScript и разработка
+
+Основной код — TypeScript в `src/` с подробными комментариями на английском и русском. Runtime загружает сгенерированные файлы из `dist/`, а также compatibility-точки `index.js`/`client.js`.
 
 ```bash
 pnpm install
-node --check index.js
-node --check client.js
-node --check lib/*.js
-node --test test/*.test.mjs
+pnpm build       # tsc host + client, затем синхронизация compatibility-точек
+pnpm check       # проверка типов без записи
+pnpm test        # сборка и запуск node:test
 bash scripts/check-secrets.sh
 ```
+
+- `src/index.ts` — вход плагина, хранилища, маршруты, слушатель голоса.
+- `src/lib/*.ts` — DeepSeek, Edge TTS, ffmpeg, оркестрация ASR/TTS, MCP, хранение, маршрутизация.
+- `src/client.ts` — клиент сайдбара/настроек DSH Web (обычный браузерный скрипт без import/export).
+- `dist/` — сгенерированный JavaScript, закоммичен для Git-установки DSH.
+- `client.js`/`index.js` — сгенерированные compatibility-точки для кэшированного загрузчика DSH; вручную не редактировать.

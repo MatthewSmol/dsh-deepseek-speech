@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { detectSpeechLanguage, edgeVoiceFor, escapeXml, EDGE_VOICES } from '../lib/edge.js'
+import { detectSpeechLanguage, edgeVoiceFor, escapeXml, EDGE_VOICES } from '../dist/lib/edge.js'
 
 test('detects Russian and English text', () => {
   assert.equal(detectSpeechLanguage('Привет, это проверка'), 'ru')

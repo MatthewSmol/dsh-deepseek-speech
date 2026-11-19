@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { wantsVoice, textOfMessage, POSITIVE_RE, NEGATIVE_RE } from '../lib/voice-reply.js'
+import { wantsVoice, textOfMessage, POSITIVE_RE, NEGATIVE_RE } from '../dist/lib/voice-reply.js'
 
 test('positive voice triggers', () => {
   for (const text of [

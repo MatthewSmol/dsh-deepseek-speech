@@ -1,3 +1,9 @@
+/**
+ * EN: HTTP surface for the Telegram gateway, browser settings, statistics and
+ * the MCP endpoint. Every route is loopback-only for browser/MCP callers.
+ * RU: HTTP-поверхность для Telegram gateway, настроек браузера, статистики и
+ * MCP endpoint. Маршруты браузера/MCP доступны только с loopback.
+ */
 import { Buffer } from 'node:buffer'
 import { historyTotals, previewText } from './store.js'
 import { asrCostUsd, ttsCostUsd, estimateTokens, describeApiKey, redactError } from './deepseek.js'
@@ -25,18 +31,22 @@ function trustedBrowser(req, ctx) {
   return false
 }
 
-function writeJson(res, status, body) {
+/**
+ * EN: All plugin JSON responses are non-cacheable.
+ * RU: Все JSON-ответы плагина не кэшируются.
+ */
+function writeJson(res: any, status: number, body: any): void {
   res.statusCode = status
   res.setHeader('Content-Type', 'application/json; charset=utf-8')
   res.setHeader('Cache-Control', 'no-store')
   res.end(JSON.stringify(body))
 }
 
-function readBody(req, maxBytes) {
+function readBody(req: any, maxBytes: number): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const declared = Number(req.headers?.['content-length'])
     if (Number.isFinite(declared) && declared > maxBytes) {
-      const err = new Error(`body too large (max ${maxBytes} bytes)`)
+      const err: any = new Error(`body too large (max ${maxBytes} bytes)`)
       err.statusCode = 413
       reject(err)
       return
@@ -46,7 +56,7 @@ function readBody(req, maxBytes) {
     req.on('data', (chunk) => {
       total += chunk.length
       if (total > maxBytes) {
-        const err = new Error(`body too large (max ${maxBytes} bytes)`)
+        const err: any = new Error(`body too large (max ${maxBytes} bytes)`)
         err.statusCode = 413
         req.destroy(err)
         reject(err)
@@ -59,12 +69,16 @@ function readBody(req, maxBytes) {
   })
 }
 
-async function readJson(req, maxBytes = MAX_JSON) {
+async function readJson(req: any, maxBytes = MAX_JSON): Promise<any> {
   const raw = await readBody(req, maxBytes)
   if (!raw.length) return {}
   try { return JSON.parse(raw.toString('utf8')) } catch { throw new SpeechError('Invalid JSON body', { code: 'bad-json', status: 400 }) }
 }
 
+/**
+ * EN: Rejects unsupported methods with 405 instead of falling through.
+ * RU: Отклоняет неподдерживаемые методы кодом 405, не проваливаясь дальше.
+ */
 function methodGuard(req, res, allowed) {
   if (req.method !== allowed) {
     writeJson(res, 405, { ok: false, error: { code: 'method', message: `${allowed} only` } })
@@ -73,7 +87,7 @@ function methodGuard(req, res, allowed) {
   return true
 }
 
-function routeError(res, err, logger) {
+function routeError(res: any, err: any, logger: any): void {
   const status = Number(err?.status || err?.statusCode) || 502
   const code = err?.code || 'error'
   const message = redactError(err)
@@ -85,7 +99,7 @@ function routeError(res, err, logger) {
   }
 }
 
-function asrRecord({ started, mode, result, config }) {
+function asrRecord({ started, mode, result, config }: any) {
   return {
     kind: 'asr',
     source: mode,
@@ -103,7 +117,7 @@ function asrRecord({ started, mode, result, config }) {
   }
 }
 
-function ttsRecord({ started, source, result, sessionId, voiceId, config }) {
+function ttsRecord({ started, source, result, sessionId = null, voiceId, config }: any) {
   return {
     kind: 'tts',
     source,
@@ -144,6 +158,10 @@ export function registerRoutes({ ctx, config, settingsStore, history, getDeps, l
     }
   }
 
+  // EN: Gateway-compatible ASR route. A duplicate registration is reported,
+  // not thrown, so the rest of the plugin can still start.
+  // RU: ASR-маршрут, совместимый с gateway. Дубликат регистрации сообщается,
+  // но не выбрасывается, чтобы остальной плагин мог запуститься.
   asrRouteActive = register('/dsh-voice/transcribe', async (req, res) => {
     if (!methodGuard(req, res, 'POST')) return
     if (!isLoopback(req.socket?.remoteAddress)) {
@@ -284,6 +302,8 @@ export function registerRoutes({ ctx, config, settingsStore, history, getDeps, l
     }
   }, 'deepseek-speech/history/clear')
 
+  // EN: Key writes go only through DSH credentials; the key is never echoed.
+  // RU: Запись ключа идёт только через DSH credentials; ключ никогда не возвращается.
   register('/deepseek-speech/key', async (req, res) => {
     if (!['POST', 'DELETE'].includes(req.method || '')) {
       writeJson(res, 405, { ok: false, error: { code: 'method', message: 'POST or DELETE only' } })
@@ -361,6 +381,8 @@ export function registerRoutes({ ctx, config, settingsStore, history, getDeps, l
     }
   }, 'deepseek-speech/tools/install')
 
+  // EN: Preview uses the same provider order as voice replies.
+  // RU: Preview использует тот же порядок провайдеров, что и голосовые ответы.
   register('/deepseek-speech/tts/preview', async (req, res) => {
     if (!methodGuard(req, res, 'POST')) return
     if (!trustedBrowser(req, ctx)) {
