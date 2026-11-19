@@ -507,8 +507,8 @@ window.__ModuleLoader__.load({
             text: t('sample'),
             voiceId: form?.voiceId || status?.settings?.voiceId || 'stella',
             ttsQuality: form?.ttsQuality || status?.settings?.ttsQuality || '64',
-            edgeEnabled: form?.edgeEnabled !== false,
-            edgeLanguage: form?.edgeLanguage || status?.settings?.edgeLanguage || 'auto',
+            edgeEnabled: form?.edgeEnabled,
+            edgeLanguage: form?.edgeLanguage,
           }),
         })
         const binary = atob(data.audioBase64)
