@@ -10,3 +10,11 @@
         asrMaxDurationSeconds: 600
         ffmpegPath: ""
         ffprobePath: ""
+    - id: deepseek-speech-mcp
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: deepseek_speech
+        transport: streamable-http
+        url: http://127.0.0.1:3080/deepseek-speech/mcp
+        failOnStartupError: false
+        toolCallTimeoutMs: 180000

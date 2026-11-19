@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "DeepSeek ASR/TTS for Telegram voice messages and voice replies, with usage statistics in the DSH sidebar.",
+  "description": "DeepSeek ASR, Edge/DeepSeek TTS, and an MCP service for Telegram voice messages with sidebar usage statistics.",
   "exports": {
     ".": "./index.js",
     "./client": "./client.js",
@@ -17,7 +17,8 @@
     "cordis.patch.yml",
     "locale/*.json",
     "icon.svg",
-    "README.md"
+    "README.md",
+    "scripts/*.sh"
   ],
   "dsh": {
     "bundle": {
@@ -31,5 +32,11 @@
         "@deepseek-ai/dsh-client-locale"
       ]
     }
+  },
+  "dependencies": {
+    "@modelcontextprotocol/node": "^2.1.2",
+    "@modelcontextprotocol/server": "^2.4.0",
+    "msedge-tts": "^2.1.1",
+    "zod": "^4.6.7"
   }
 }

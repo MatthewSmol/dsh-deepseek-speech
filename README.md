@@ -4,379 +4,361 @@
 
 ## English
 
-DeepSeek speech connects Telegram voice messages to the DeepSeek ASR/TTS APIs inside [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness).
+A DSH plugin and MCP service for Telegram voice messages, DeepSeek ASR, Edge TTS and DeepSeek TTS.
 
-- Incoming Telegram voice/audio → `ffmpeg`/`ffprobe` → DeepSeek ASR → text in the agent prompt.
-- Assistant replies → DeepSeek TTS → OGG/Opus → Telegram voice note, but only when the prompt asks for it or **Always reply with voice** is enabled.
-- A sidebar panel shows duration, characters, estimated tokens, cost, latency, quality and history.
-- The DeepSeek API key lives in DSH credentials, not in this repository.
+- Incoming Telegram voice/audio → ffmpeg/ffprobe → DeepSeek ASR → text in the agent prompt.
+- Assistant replies → Edge TTS (primary, Russian/English) → OGG/Opus → Telegram voice note, when the prompt asks for it or **Always reply with voice** is enabled.
+- DeepSeek TTS is the automatic fallback if Edge fails.
+- A sidebar panel shows duration, characters, estimated tokens, cost, latency, quality and provider.
+- An MCP Streamable HTTP server exposes the same speech service to DSH and external MCP clients.
 
 Repository: <https://github.com/MatthewSmol/dsh-deepseek-speech>
 
 ### Features
 
-- Telegram voice transcription through the gateway's `/dsh-voice/transcribe` route.
-- Long audio is split into ~110-second chunks before DeepSeek ASR.
-- Any Telegram audio format is converted locally with `ffmpeg`; duration comes from `ffprobe`.
-- TTS quality from 64 to 256 kbps CBR, or Dynamic VBR.
-- Prompt triggers and an explicit “always voice” checkbox; no automatic voice just because the input was voice.
-- Bilingual settings/history UI (English and Russian).
-- Dependency check for `ffmpeg`, `ffprobe` and `libopus`, with a global-install action when they are missing.
+- Telegram voice transcription through `/dsh-voice/transcribe`.
+- Local ffmpeg conversion and chunking for long audio.
+- Edge TTS primary: `ru-RU-DmitryNeural`, `ru-RU-SvetlanaNeural`, `en-US-GuyNeural`, `en-US-AriaNeural`.
+- Automatic RU/EN language selection, with a manual override.
+- DeepSeek TTS fallback.
+- MCP tools: `transcribe_audio`, `synthesize_speech`, `speech_status`, `speech_stats`, `list_voices`.
+- Dependency checks for ffmpeg, ffprobe, libopus and Edge/MCP packages.
 - No API key, bot token or audio bytes are written to the repository.
 
 ### Requirements
 
 - DSH Web with a managed profile and the Telegram messenger gateway.
-- Node.js 24+ (the DSH runtime).
+- Node.js 24+.
 - `ffmpeg` and `ffprobe` with `libopus`.
-- `@goodandready/dsh-voice` **must be removed**: this plugin owns `/dsh-voice/transcribe`. Remove the stale `dsh-voice` row from the profile if it remains, then restart DSH.
-- A DeepSeek API key with access to the ASR/TTS tools.
+- `@goodandready/dsh-voice` must be removed: this plugin owns `/dsh-voice/transcribe`. Remove its stale profile row and restart DSH.
+- DeepSeek API key for ASR and DeepSeek TTS fallback. Edge TTS does not need a key.
+- Network access to `speech.platform.bing.com` for Edge TTS.
 
 ### Install
 
-#### Web UI (recommended)
+#### Web UI
 
 1. Open **Plugins** in the DSH sidebar.
 2. Select **Add plugin** → **Install a third-party plugin**.
-3. Enter one of:
-   - `https://github.com/MatthewSmol/dsh-deepseek-speech.git`
-   - the absolute path to a local clone.
-4. Select **Install**.
-5. When installation completes, select **Enable now**.
-6. Restart DSH if it asks for a restart, or if the ASR route reports a conflict.
+3. Enter the Git URL `https://github.com/MatthewSmol/dsh-deepseek-speech.git` or an absolute path to a local clone.
+4. Select **Install**, then **Enable now**.
+5. Restart DSH if prompted, or if the ASR route reports a conflict.
 
 #### Local clone
 
 ```bash
 git clone https://github.com/MatthewSmol/dsh-deepseek-speech.git
+cd dsh-deepseek-speech
+pnpm install
 ```
 
-Then use **Plugins → Add plugin → Install a third-party plugin** and enter the absolute path to the cloned directory. Enable the bundle and restart DSH if requested.
+Then install the directory from **Plugins → Add plugin → Install a third-party plugin**. `pnpm install` is required because Edge TTS and MCP are npm dependencies.
 
 #### Through the DSH agent
 
-The agent can install the bundle with the `plugin_manager` tool:
-
-- action: `install_bundle`
-- target: the Git URL or an absolute local directory
-- review `application` and `warnings`
-- restart DSH when the result says `restart-required`
-
-Profile changes are persistent and require approval.
+Use `plugin_manager` with action `install_bundle`, target the Git URL or absolute directory path. Review `application` and `warnings`; restart if `restart-required`.
 
 ### Configure in DSH
 
-1. Open **Settings → DeepSeek speech** (or the **DeepSeek speech** sidebar panel → **Settings**).
-2. Paste the DeepSeek API key into **DeepSeek API key** and select **Save**.
-   - The value is stored through DSH credentials as `DEEPSEEK_API_KEY`.
-   - The browser receives only “configured / not configured”; the value is never returned.
-3. Check **Dependencies**:
-   - `ffmpeg`, `ffprobe`, `libopus` should be green.
-   - If something is missing, select **Install ffmpeg globally**. The host runs `sudo -n apt-get update && sudo -n apt-get install -y ffmpeg`. It never asks for or accepts a sudo password.
-   - If passwordless sudo is unavailable, the panel shows the exact command to run manually:
-     ```bash
-     sudo apt-get update && sudo apt-get install -y ffmpeg
-     ```
-4. Choose a voice: **Клеопатра** (API id `stella`) or **Македонский** (API id `tide`).
-5. Choose **OGG/Opus quality**: 64, 96, 128, 160, 192, 256 kbps, or **Dynamic VBR**.
-6. Keep **Always reply with voice** off unless every assistant reply should be spoken.
-7. Check **Telegram ASR route**:
-   - `active` — ready.
-   - `conflict` — another plugin owns `/dsh-voice/transcribe`; remove `@goodandready/dsh-voice`, clean its profile row, restart DSH.
-8. Send a voice message to the bot. The transcript should arrive in the agent prompt and appear in the panel history.
-9. Send a prompt such as “reply with voice” to test a spoken reply.
+1. Open **Settings → DeepSeek speech**.
+2. Paste the DeepSeek API key and select **Save**. It is stored in DSH credentials as `DEEPSEEK_API_KEY`; the browser only sees configured/not configured.
+3. Check **Dependencies**: ffmpeg, ffprobe, libopus, Edge package, MCP SDK. Missing ffmpeg can be installed with **Install ffmpeg globally** when passwordless sudo is available.
+4. Choose a voice:
+   - **Клеопатра** — RU `ru-RU-SvetlanaNeural`, EN `en-US-AriaNeural`;
+   - **Македонский** — RU `ru-RU-DmitryNeural`, EN `en-US-GuyNeural`.
+5. Choose **Edge language**: Auto, Russian, or English.
+6. Choose **OGG/Opus quality**: 64, 96, 128, 160, 192, 256 kbps, or Dynamic VBR.
+7. Keep **Edge TTS (primary)** enabled unless you want DeepSeek TTS directly.
+8. Check the MCP card: endpoint `/deepseek-speech/mcp`, server name `deepseek_speech`, tools listed.
+9. Check **Telegram ASR route**: `active` means ready. A `conflict` means another plugin owns the route; remove `dsh-voice` and restart DSH.
+10. Send a voice message and a prompt such as “reply with voice”.
 
-The Telegram gateway must already be configured with its bot token. This plugin does not read or copy the bot token.
+The Telegram gateway must already be configured with its bot token. This plugin does not read or copy that token.
 
 ### Voice replies
 
 Voice is used only when:
 
-- the user prompt explicitly asks for it, for example:
-  - “ответь голосом”
-  - “озвучь ответ”
-  - “прочитай вслух”
-  - “reply with voice”
-  - “send voice”
-  - “read aloud”
+- the prompt explicitly asks for it: “ответь голосом”, “озвучь ответ”, “прочитай вслух”, “reply with voice”, “send voice”, “read aloud”;
 - **or** **Always reply with voice** is enabled.
 
-Negative instructions suppress voice:
+Negative instructions suppress voice: “не озвучивай”, “без голоса”, “только текстом”, “text only”, “don’t speak”, “no voice”.
 
-- “не озвучивай”
-- “без голоса”
-- “только текстом”
-- “text only”
-- “don’t speak”
-- “no voice”
+Only sessions whose id starts with `msgw-` are spoken. The voice note goes to the Telegram home `default` (private chat). Web sessions are not spoken automatically.
 
-The plugin listens only to sessions whose id starts with `msgw-`. It sends the voice note to the Telegram home `default` (the private chat configured in the gateway). Web sessions are not spoken automatically.
+Edge TTS is an unofficial Microsoft Read Aloud endpoint:
 
-DeepSeek TTS officially supports `zh`, `yue`, `en`, `ja`, `ko`, `ms`, `ar`, `id`, `th`, `vi`. Russian is not official; Russian text is sent as-is by the user's choice and may sound imperfect.
+- free and keyless;
+- no SLA;
+- may return 403 at any time;
+- sends the reply text to Microsoft;
+- falls back to DeepSeek TTS on failure.
 
-### ASR behavior
+DeepSeek TTS officially supports a limited language set; Russian is not official, so DeepSeek fallback for Russian may sound imperfect. Edge supports Russian and English voices.
+
+### ASR
 
 The gateway sends base64 audio and MIME type to `/dsh-voice/transcribe`.
 
-1. Audio is validated and measured with `ffprobe`.
-2. It is converted to 16 kHz mono PCM WAV.
-3. Audio longer than 110 seconds is split into chunks (each below DeepSeek's 120-second limit).
-4. Each chunk is sent to DeepSeek ASR.
-5. The transcript chunks are joined and returned to the gateway, which adds them to the agent prompt.
+1. ffprobe measures the audio.
+2. ffmpeg converts it to 16 kHz mono PCM WAV.
+3. Audio longer than 110 seconds is split into chunks below DeepSeek’s 120-second limit.
+4. DeepSeek ASR transcribes each chunk.
+5. Text chunks are joined and added to the agent prompt.
 
-Default limit: 600 seconds per message. You can change `asrMaxDurationSeconds` and `asrChunkSeconds` in the bundle config.
+The default maximum is 600 seconds per message; `asrMaxDurationSeconds` and `asrChunkSeconds` can be changed in the bundle config.
 
-### Quality
+### Edge TTS and quality
 
-The selected OGG/Opus quality applies to the file this plugin sends to Telegram. Telegram may re-encode voice notes during delivery, so the delivered quality can differ.
+Edge source is 96 kbps MP3 (48 kbps fallback), converted locally to OGG/Opus. The final OGG quality is selected in settings; a higher final bitrate does not restore detail absent from the Edge source.
 
-| Setting | Encoder |
+| Setting | Encoding |
 | --- | --- |
-| 64–256 kbps | CBR, `libopus`, mono 48 kHz |
-| Dynamic VBR | VBR target 256 kbps, `libopus`, mono 48 kHz |
+| 64–256 kbps | CBR, libopus, mono 48 kHz |
+| Dynamic VBR | VBR target 256 kbps, libopus, mono 48 kHz |
+
+Telegram may re-encode voice notes during delivery; the setting controls the source OGG sent by the plugin.
+
+### MCP service
+
+The plugin exposes MCP Streamable HTTP at:
+
+```text
+http://127.0.0.1:3080/deepseek-speech/mcp
+```
+
+Server name in DSH: `deepseek_speech`. Tools appear as:
+
+```text
+mcp__deepseek_speech__transcribe_audio
+mcp__deepseek_speech__synthesize_speech
+mcp__deepseek_speech__speech_status
+mcp__deepseek_speech__speech_stats
+mcp__deepseek_speech__list_voices
+```
+
+The bundle adds a DSH MCP client row pointing at this endpoint. The endpoint is loopback-only; do not expose it to a LAN. `synthesize_speech` writes OGG to `$DSH_HOME/deepseek-speech/out/`; set `sendToTelegram: true` to deliver it immediately.
 
 ### Statistics
 
-The panel shows:
+The panel shows ASR/TTS counts, audio duration, characters, estimated tokens, cost, latency, provider, language, quality, chunks, preview and errors.
 
-- ASR and TTS request counts.
-- Total and per-request audio duration.
-- Text characters and estimated tokens.
-- Estimated cost using the configured rates.
-- Latency and success rate.
-- Quality, chunk count, transcript preview and errors.
+DeepSeek does not return token usage for ASR/TTS. ASR is billed by audio seconds, TTS by characters. Token figures are a text estimate, not billing data. Edge TTS cost is zero. Defaults: ASR $0.058/hour, DeepSeek TTS $0.225/10,000 characters.
 
-DeepSeek does not return token usage for ASR/TTS. ASR is billed by audio seconds and TTS by characters. Token figures are a text estimate, not billing data. Defaults are the limited-time rates: ASR $0.058/hour, TTS $0.225/10,000 characters.
+History/settings are stored in `$DSH_HOME/deepseek-speech/`, outside the repository, mode 0600. Audio bytes are not stored there, except explicitly synthesized MCP files under `out/`.
 
-History and settings are stored in:
+### Security and privacy
 
-```text
-$DSH_HOME/deepseek-speech/
-```
-
-They are outside the repository, mode 0600, and audio bytes are never stored.
-
-### Security
-
-- The DeepSeek key is written only through `ctx.credentials` as `DEEPSEEK_API_KEY`.
+- The DeepSeek key is stored only through DSH credentials as `DEEPSEEK_API_KEY`.
 - The browser never receives the key back.
-- History contains a short text preview, never the audio.
-- The plugin never reads or copies the Telegram bot token.
-- No `.env`, key files, history, tokens or credentials belong in Git. `.gitignore` excludes the common cases.
-- `scripts/check-secrets.sh` scans the repository and never prints a matched value.
+- No secrets are written to the repository.
+- The MCP endpoint and ASR route are loopback-only.
+- Edge TTS sends reply text to Microsoft’s unofficial Read Aloud endpoint.
+- `scripts/check-secrets.sh` scans the repository without printing matched values.
 
 ### Troubleshooting
 
 | Problem | Fix |
 | --- | --- |
-| ASR route `conflict` | Remove `@goodandready/dsh-voice`, remove its stale profile row, restart DSH. |
+| ASR route `conflict` | Remove `dsh-voice`, clean its profile row, restart DSH. |
 | 401 from DeepSeek | Replace the API key in settings. |
-| `ffmpeg`/`ffprobe` missing | Use **Install ffmpeg globally**, or run the shown `sudo apt-get` command. |
-| Install says `root-required` | The DSH process has no passwordless sudo. Run the command manually as root. |
-| Voice reply is silent | Check that the prompt asks for voice or the checkbox is on; check the panel error row; check the Telegram home. |
-| Russian voice sounds wrong | DeepSeek TTS does not officially support Russian. Use text or a supported language. |
-| Audio is too long | The default cap is 600 seconds; adjust `asrMaxDurationSeconds` in the bundle config. |
-| Telegram voice note is re-encoded | Telegram may transcode voice; the setting controls the source OGG/Opus file. |
+| Edge 403/timeout | DeepSeek fallback should run; disable Edge TTS if it persists. |
+| Edge package missing | Run `pnpm install` in the plugin directory and restart DSH. |
+| MCP SDK missing | Run `pnpm install`; check the MCP card. |
+| MCP tools absent | Restart DSH; confirm `http://127.0.0.1:3080/deepseek-speech/mcp` responds. |
+| ffmpeg missing | Install ffmpeg globally or use the shown sudo command. |
+| Russian DeepSeek voice sounds wrong | Use Edge for Russian, or text. |
+| Voice note is re-encoded | Telegram may transcode voice; the setting applies to the source OGG. |
 
 ### Development
 
 ```bash
+pnpm install
 node --check index.js
 node --check client.js
 node --check lib/*.js
 node --test test/*.test.mjs
 bash scripts/check-secrets.sh
 ```
-
-The plugin is plain ESM, has no build step, and is installed into a DSH profile as a local bundle.
 
 ---
 
 <a id="русский"></a>
 ## Русский
 
-DeepSeek речь связывает голосовые сообщения Telegram с API DeepSeek ASR/TTS внутри [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness).
+DSH-плагин и MCP-сервис для голосовых Telegram, DeepSeek ASR, Edge TTS и DeepSeek TTS.
 
-- Входящее голосовое/аудио Telegram → `ffmpeg`/`ffprobe` → DeepSeek ASR → текст в промпте агента.
-- Ответы ассистента → DeepSeek TTS → OGG/Opus → голосовое сообщение Telegram, но только если это попросили в промпте или включена галочка **«Всегда отвечать голосом»**.
-- Панель в сайдбаре показывает длительность, символы, оценку токенов, стоимость, задержку, качество и историю.
-- DeepSeek API key хранится в DSH credentials, а не в этом репозитории.
+- Входящее голосовое/аудио Telegram → ffmpeg/ffprobe → DeepSeek ASR → текст в промпте агента.
+- Ответы ассистента → Edge TTS (основной, русский/английский) → OGG/Opus → голосовое Telegram, если это попросили в промпте или включена галочка **«Всегда отвечать голосом»**.
+- DeepSeek TTS — автоматический fallback при сбое Edge.
+- Панель в сайдбаре показывает длительность, символы, оценку токенов, стоимость, задержку, качество и провайдера.
+- MCP Streamable HTTP сервер отдаёт тот же сервис DSH и внешним MCP-клиентам.
 
 Репозиторий: <https://github.com/MatthewSmol/dsh-deepseek-speech>
 
 ### Возможности
 
-- Распознавание голосовых Telegram через маршрут gateway `/dsh-voice/transcribe`.
-- Длинное аудио режется на чанки примерно по 110 секунд перед DeepSeek ASR.
-- Любой формат аудио Telegram конвертируется локально через `ffmpeg`; длительность определяется `ffprobe`.
-- Качество TTS от 64 до 256 кбит CBR или Dynamic VBR.
-- Триггеры в промпте и явная галочка «Всегда отвечать голосом»; автоматической озвучки только из-за голосового ввода нет.
-- Двуязычные настройки и история (английский и русский).
-- Проверка `ffmpeg`, `ffprobe`, `libopus` и кнопка глобальной установки, если их нет.
+- Распознавание голосовых Telegram через `/dsh-voice/transcribe`.
+- Локальная конвертация ffmpeg и нарезка длинного аудио.
+- Edge TTS основной: `ru-RU-DmitryNeural`, `ru-RU-SvetlanaNeural`, `en-US-GuyNeural`, `en-US-AriaNeural`.
+- Автоопределение RU/EN с ручным выбором.
+- DeepSeek TTS fallback.
+- MCP tools: `transcribe_audio`, `synthesize_speech`, `speech_status`, `speech_stats`, `list_voices`.
+- Проверка ffmpeg, ffprobe, libopus, Edge и MCP-пакетов.
 - API key, bot token и аудио не пишутся в репозиторий.
 
 ### Требования
 
 - DSH Web с управляемым профилем и Telegram messenger gateway.
-- Node.js 24+ (runtime DSH).
+- Node.js 24+.
 - `ffmpeg` и `ffprobe` с `libopus`.
-- `@goodandready/dsh-voice` **должен быть удалён**: этот плагин занимает `/dsh-voice/transcribe`. Удалите также оставшуюся строку `dsh-voice` из профиля и перезапустите DSH.
-- DeepSeek API key с доступом к ASR/TTS.
+- `@goodandready/dsh-voice` должен быть удалён: плагин занимает `/dsh-voice/transcribe`. Удалите его строку из профиля и перезапустите DSH.
+- DeepSeek API key для ASR и DeepSeek TTS fallback. Edge TTS ключ не нужен.
+- Сеть до `speech.platform.bing.com` для Edge TTS.
 
 ### Установка
 
-#### Через Web UI (рекомендуется)
+#### Web UI
 
 1. Откройте **Plugins** в сайдбаре DSH.
 2. Выберите **Add plugin** → **Install a third-party plugin**.
-3. Укажите одно из:
-   - `https://github.com/MatthewSmol/dsh-deepseek-speech.git`
-   - абсолютный путь к локальному клону.
-4. Нажмите **Install**.
-5. После установки нажмите **Enable now**.
-6. Перезапустите DSH, если он попросил, или если маршрут ASR показывает конфликт.
+3. Укажите Git URL `https://github.com/MatthewSmol/dsh-deepseek-speech.git` или абсолютный путь к локальному клону.
+4. Нажмите **Install**, затем **Enable now**.
+5. Перезапустите DSH, если попросит или если маршрут ASR показывает конфликт.
 
 #### Локальный клон
 
 ```bash
 git clone https://github.com/MatthewSmol/dsh-deepseek-speech.git
+cd dsh-deepseek-speech
+pnpm install
 ```
 
-Затем **Plugins → Add plugin → Install a third-party plugin** и укажите абсолютный путь к каталогу. Включите bundle и перезапустите DSH, если потребуется.
+Затем установите каталог через **Plugins → Add plugin → Install a third-party plugin**. `pnpm install` обязателен: Edge TTS и MCP — npm-зависимости.
 
 #### Через агента DSH
 
-Агент может установить bundle инструментом `plugin_manager`:
-
-- action: `install_bundle`
-- target: Git URL или абсолютный локальный каталог
-- проверьте `application` и `warnings`
-- перезапустите DSH, если результат `restart-required`
-
-Изменения профиля сохраняются и требуют подтверждения.
+`plugin_manager` → `install_bundle`, target — Git URL или абсолютный путь. Проверьте `application` и `warnings`; при `restart-required` перезапустите DSH.
 
 ### Настройка в DSH
 
-1. Откройте **Settings → DeepSeek speech** (или панель **DeepSeek speech** в сайдбаре → **Settings**).
-2. Вставьте DeepSeek API key в поле **DeepSeek API key** и нажмите **Save**.
-   - Значение сохраняется через DSH credentials как `DEEPSEEK_API_KEY`.
-   - Браузер получает только «настроен / не настроен»; значение никогда не возвращается.
-3. Проверьте **Dependencies**:
-   - `ffmpeg`, `ffprobe`, `libopus` должны быть зелёными.
-   - Если чего-то нет, нажмите **Install ffmpeg globally**. Host выполнит `sudo -n apt-get update && sudo -n apt-get install -y ffmpeg`. Пароль sudo не запрашивается и не принимается.
-   - Если passwordless sudo недоступен, панель покажет точную команду:
-     ```bash
-     sudo apt-get update && sudo apt-get install -y ffmpeg
-     ```
-4. Выберите голос: **Клеопатра** (API id `stella`) или **Македонский** (API id `tide`).
-5. Выберите **качество OGG/Opus**: 64, 96, 128, 160, 192, 256 кбит или **Dynamic VBR**.
-6. Оставьте **«Всегда отвечать голосом»** выключенной, если не нужно озвучивать каждый ответ.
-7. Проверьте **Telegram ASR route**:
-   - `active` — готово.
-   - `conflict` — маршрут `/dsh-voice/transcribe` занят; удалите `@goodandready/dsh-voice`, очистите строку в профиле и перезапустите DSH.
-8. Отправьте голосовое боту. Текст должен попасть в промпт агента и появиться в истории панели.
-9. Отправьте промпт «ответь голосом», чтобы проверить голосовой ответ.
+1. Откройте **Settings → DeepSeek speech**.
+2. Вставьте DeepSeek API key и нажмите **Save**. Он хранится в DSH credentials как `DEEPSEEK_API_KEY`; браузер видит только «настроен/не настроен».
+3. Проверьте **Dependencies**: ffmpeg, ffprobe, libopus, Edge, MCP SDK. Если ffmpeg нет, доступна кнопка **Install ffmpeg globally** при наличии passwordless sudo.
+4. Выберите голос:
+   - **Клеопатра** — RU `ru-RU-SvetlanaNeural`, EN `en-US-AriaNeural`;
+   - **Македонский** — RU `ru-RU-DmitryNeural`, EN `en-US-GuyNeural`.
+5. Выберите **Edge language**: Auto, Русский или English.
+6. Выберите **качество OGG/Opus**: 64, 96, 128, 160, 192, 256 кбит или Dynamic VBR.
+7. Оставьте **Edge TTS (primary)** включённым, если не нужен сразу DeepSeek TTS.
+8. Проверьте карточку MCP: endpoint `/deepseek-speech/mcp`, server name `deepseek_speech`, список tools.
+9. Проверьте **Telegram ASR route**: `active` — готово. `conflict` — маршрут занят; удалите `dsh-voice` и перезапустите DSH.
+10. Отправьте голосовое и промпт вроде «ответь голосом».
 
-Telegram gateway должен быть уже настроен со своим bot token. Этот плагин не читает и не копирует bot token.
+Telegram gateway должен быть уже настроен со своим bot token. Плагин не читает и не копирует его.
 
 ### Голосовые ответы
 
 Голос используется только если:
 
-- в промпте явно попросили:
-  - «ответь голосом»
-  - «озвучь ответ»
-  - «прочитай вслух»
-  - «reply with voice»
-  - «send voice»
-  - «read aloud»
+- в промпте явно попросили: «ответь голосом», «озвучь ответ», «прочитай вслух», «reply with voice», «send voice», «read aloud»;
 - **или** включена галочка **«Всегда отвечать голосом»**.
 
-Отрицательные указания подавляют озвучку:
+Отрицания подавляют озвучку: «не озвучивай», «без голоса», «только текстом», «text only», «don’t speak», «no voice».
 
-- «не озвучивай»
-- «без голоса»
-- «только текстом»
-- «text only»
-- «don’t speak»
-- «no voice»
+Озвучиваются только сессии с id, начинающимся на `msgw-`. Голос уходит в Telegram home `default` (личка). Веб-сессии автоматически не озвучиваются.
 
-Плагин слушает только сессии с id, начинающимся на `msgw-`. Голосовое сообщение отправляется в Telegram home `default` (личка, настроенная в gateway). Веб-сессии автоматически не озвучиваются.
+Edge TTS — неофициальный Microsoft Read Aloud endpoint:
 
-DeepSeek TTS официально поддерживает `zh`, `yue`, `en`, `ja`, `ko`, `ms`, `ar`, `id`, `th`, `vi`. Русский не официальный; по выбору пользователя русский текст отправляется как есть и может звучать неидеально.
+- бесплатный, без ключа;
+- без SLA;
+- может вернуть 403 в любой момент;
+- отправляет текст ответа в Microsoft;
+- при сбое переключается на DeepSeek TTS.
 
-### Как работает ASR
+DeepSeek TTS официально поддерживает ограниченный набор языков; русский не официальный, поэтому fallback на русском может звучать неидеально. Edge поддерживает русские и английские голоса.
+
+### ASR
 
 Gateway отправляет base64-аудио и MIME в `/dsh-voice/transcribe`.
 
-1. Аудио проверяется и измеряется через `ffprobe`.
-2. Конвертируется в 16 kHz mono PCM WAV.
-3. Аудио длиннее 110 секунд режется на чанки (каждый ниже лимита DeepSeek 120 секунд).
-4. Каждый чанк отправляется в DeepSeek ASR.
-5. Тексты склеиваются и возвращаются gateway, который добавляет их в промпт агента.
+1. ffprobe измеряет аудио.
+2. ffmpeg конвертирует в 16 kHz mono PCM WAV.
+3. Аудио длиннее 110 секунд режется на чанки ниже лимита DeepSeek 120 секунд.
+4. DeepSeek ASR распознаёт каждый чанк.
+5. Тексты склеиваются и попадают в промпт агента.
 
-Лимит по умолчанию: 600 секунд на сообщение. `asrMaxDurationSeconds` и `asrChunkSeconds` можно изменить в конфиге bundle.
+Лимит по умолчанию — 600 секунд на сообщение; `asrMaxDurationSeconds` и `asrChunkSeconds` меняются в конфиге bundle.
 
-### Качество
+### Edge TTS и качество
 
-Выбранное качество OGG/Opus применяется к файлу, который плагин отправляет в Telegram. Telegram может перекодировать voice-note при доставке, поэтому итоговое качество может отличаться.
+Источник Edge — MP3 96 кбит (fallback 48), затем локальная конвертация в OGG/Opus. Финальное качество выбирается в настройках; высокий финальный битрейт не восстанавливает детали, которых нет в источнике.
 
 | Настройка | Кодирование |
 | --- | --- |
-| 64–256 кбит | CBR, `libopus`, mono 48 kHz |
-| Dynamic VBR | VBR с целевыми 256 кбит, `libopus`, mono 48 kHz |
+| 64–256 кбит | CBR, libopus, mono 48 kHz |
+| Dynamic VBR | VBR target 256 кбит, libopus, mono 48 kHz |
+
+Telegram может перекодировать voice-note при доставке; настройка задаёт исходный OGG.
+
+### MCP-сервис
+
+MCP Streamable HTTP:
+
+```text
+http://127.0.0.1:3080/deepseek-speech/mcp
+```
+
+Server name в DSH: `deepseek_speech`. Инструменты:
+
+```text
+mcp__deepseek_speech__transcribe_audio
+mcp__deepseek_speech__synthesize_speech
+mcp__deepseek_speech__speech_status
+mcp__deepseek_speech__speech_stats
+mcp__deepseek_speech__list_voices
+```
+
+Bundle добавляет DSH MCP client row на этот endpoint. Endpoint доступен только с loopback; не публикуйте его в LAN. `synthesize_speech` сохраняет OGG в `$DSH_HOME/deepseek-speech/out/`; `sendToTelegram: true` сразу отправляет голос.
 
 ### Статистика
 
-Панель показывает:
+Панель показывает количество ASR/TTS, длительность, символы, оценку токенов, стоимость, задержку, провайдера, язык, качество, чанки, превью и ошибки.
 
-- количество запросов ASR и TTS;
-- суммарную и индивидуальную длительность аудио;
-- символы и оценку токенов;
-- оценку стоимости по настроенным тарифам;
-- задержку и success rate;
-- качество, число чанков, превью текста и ошибки.
+DeepSeek не возвращает token usage для ASR/TTS. ASR тарифицируется по секундам, TTS по символам. Токены — оценка, не биллинг. Edge TTS бесплатен. По умолчанию: ASR $0.058/час, DeepSeek TTS $0.225/10 000 символов.
 
-DeepSeek не возвращает token usage для ASR/TTS. ASR тарифицируется по секундам аудио, TTS — по символам. Токены — оценка по тексту, а не биллинг. По умолчанию взяты льготные тарифы: ASR $0.058/час, TTS $0.225/10 000 символов.
+История и настройки — в `$DSH_HOME/deepseek-speech/`, вне репозитория, права 0600. Аудио там не хранится, кроме явно синтезированных MCP-файлов в `out/`.
 
-История и настройки хранятся в:
+### Безопасность и приватность
 
-```text
-$DSH_HOME/deepseek-speech/
-```
-
-Они вне репозитория, с правами 0600; аудио не сохраняется.
-
-### Безопасность
-
-- DeepSeek key записывается только через `ctx.credentials` как `DEEPSEEK_API_KEY`.
+- DeepSeek key хранится только в DSH credentials как `DEEPSEEK_API_KEY`.
 - Браузер никогда не получает ключ обратно.
-- История содержит короткое текстовое превью, но не аудио.
-- Плагин не читает и не копирует Telegram bot token.
-- `.env`, ключи, история, токены и credentials не должны попадать в Git. `.gitignore` закрывает типовые случаи.
-- `scripts/check-secrets.sh` сканирует репозиторий и не печатает найденные значения.
+- Секреты не пишутся в репозиторий.
+- MCP endpoint и ASR route доступны только с loopback.
+- Edge TTS отправляет текст в неофициальный Microsoft Read Aloud endpoint.
+- `scripts/check-secrets.sh` сканирует репозиторий, не печатая значения.
 
 ### Troubleshooting
 
 | Проблема | Решение |
 | --- | --- |
-| ASR route `conflict` | Удалите `@goodandready/dsh-voice`, удалите его строку из профиля, перезапустите DSH. |
+| ASR route `conflict` | Удалите `dsh-voice`, очистите строку профиля, перезапустите DSH. |
 | 401 от DeepSeek | Замените API key в настройках. |
-| Нет `ffmpeg`/`ffprobe` | Нажмите **Install ffmpeg globally** или выполните показанную команду `sudo apt-get`. |
-| Установка пишет `root-required` | У процесса DSH нет passwordless sudo. Выполните команду вручную от root. |
-| Голосовой ответ не приходит | Проверьте, что в промпте есть просьба или включена галочка; посмотрите ошибку в истории; проверьте Telegram home. |
-| Русский голос звучит плохо | DeepSeek TTS официально не поддерживает русский. Используйте текст или поддерживаемый язык. |
-| Аудио слишком длинное | Лимит по умолчанию 600 секунд; измените `asrMaxDurationSeconds` в конфиге bundle. |
-| Telegram перекодировал voice | Telegram может перекодировать voice-note; настройка задаёт качество исходного OGG/Opus. |
+| Edge 403/timeout | Должен сработать DeepSeek fallback; при постоянной ошибке отключите Edge. |
+| Пакет Edge отсутствует | Выполните `pnpm install` в каталоге плагина и перезапустите DSH. |
+| MCP SDK отсутствует | `pnpm install`; проверьте карточку MCP. |
+| MCP tools не появились | Перезапустите DSH; проверьте ответ `http://127.0.0.1:3080/deepseek-speech/mcp`. |
+| Нет ffmpeg | Установите глобально или выполните показанную sudo-команду. |
+| Русский DeepSeek-голос плохой | Используйте Edge для русского или текст. |
+| Telegram перекодировал voice | Это нормально; настройка задаёт исходный OGG. |
 
 ### Разработка
 
 ```bash
+pnpm install
 node --check index.js
 node --check client.js
 node --check lib/*.js
 node --test test/*.test.mjs
 bash scripts/check-secrets.sh
 ```
-
-Плагин — обычный ESM без сборки; устанавливается в профиль DSH как локальный bundle.

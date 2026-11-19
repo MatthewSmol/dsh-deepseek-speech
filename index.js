@@ -19,6 +19,9 @@ const DEFAULTS = {
   ttsQuality: '64',
   ttsMaxChars: 4000,
   alwaysVoice: false,
+  edgeEnabled: true,
+  edgeLanguage: 'auto',
+  edgeTimeoutMs: 60000,
   asrRatePerHour: 0.058,
   ttsRatePer10k: 0.225,
 }
@@ -32,6 +35,8 @@ export function apply(ctx, rawConfig = {}) {
     ttsQuality: config.ttsQuality,
     ttsMaxChars: config.ttsMaxChars,
     telegramHome: config.telegramHome,
+    edgeEnabled: config.edgeEnabled !== false,
+    edgeLanguage: config.edgeLanguage || 'auto',
   }
   const settings = new SettingsStore(settingsDefaults, logger)
   const history = new HistoryStore(config.historyLimit, logger)

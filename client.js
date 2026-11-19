@@ -83,6 +83,26 @@ window.__ModuleLoader__.load({
       clearHistory: 'Clear history',
       confirmClear: 'Delete all speech history?',
       confirmDeleteKey: 'Remove the stored DeepSeek API key?',
+      edgePrimary: 'Edge TTS (primary, free, unofficial)',
+      edgeHint: 'Edge uses Microsoft Read Aloud: no key, no SLA, may return 403. DeepSeek TTS is the automatic fallback.',
+      edgeLanguage: 'Edge language',
+      edgeAuto: 'Auto (RU/EN)',
+      edgeRu: 'Russian',
+      edgeEn: 'English',
+      edgeAvailable: 'Edge TTS available',
+      edgeMissing: 'Edge TTS package missing',
+      mcpService: 'MCP service',
+      mcpEndpoint: 'MCP endpoint',
+      mcpTools: 'Tools',
+      mcpReady: 'MCP SDK available',
+      mcpMissing: 'MCP SDK missing',
+      provider: 'Provider',
+      edge: 'Edge',
+      deepseek: 'DeepSeek',
+      copyEndpoint: 'Copy endpoint',
+      fallback: 'fallback',
+      sourceMcp: 'MCP',
+      sourceMcpTelegram: 'MCP → Telegram',
       testVoice: 'Play a sample',
       playing: 'Playing sample…',
       sample: 'Hello. This is a DeepSeek speech test.',
@@ -176,6 +196,26 @@ window.__ModuleLoader__.load({
       clearHistory: 'Очистить историю',
       confirmClear: 'Удалить всю историю речи?',
       confirmDeleteKey: 'Удалить сохранённый DeepSeek API key?',
+      edgePrimary: 'Edge TTS (основной, бесплатный, неофициальный)',
+      edgeHint: 'Edge использует Microsoft Read Aloud: без ключа и SLA, возможен 403. DeepSeek TTS — автоматический fallback.',
+      edgeLanguage: 'Язык Edge',
+      edgeAuto: 'Авто (RU/EN)',
+      edgeRu: 'Русский',
+      edgeEn: 'English',
+      edgeAvailable: 'Edge TTS доступен',
+      edgeMissing: 'Пакет Edge TTS не установлен',
+      mcpService: 'MCP-сервис',
+      mcpEndpoint: 'MCP endpoint',
+      mcpTools: 'Инструменты',
+      mcpReady: 'MCP SDK доступен',
+      mcpMissing: 'MCP SDK не установлен',
+      provider: 'Провайдер',
+      edge: 'Edge',
+      deepseek: 'DeepSeek',
+      copyEndpoint: 'Скопировать endpoint',
+      fallback: 'fallback',
+      sourceMcp: 'MCP',
+      sourceMcpTelegram: 'MCP → Telegram',
       testVoice: 'Прослушать пример',
       playing: 'Проигрывание примера…',
       sample: 'Привет. Это проверка DeepSeek речи.',
@@ -310,7 +350,18 @@ window.__ModuleLoader__.load({
       if (source === 'dictation') return tt('sourceDictation')
       if (source === 'telegram-reply') return tt('sourceReply')
       if (source === 'preview') return tt('sourcePreview')
+      if (source === 'mcp') return tt('sourceMcp')
+      if (source === 'mcp-telegram') return tt('sourceMcpTelegram')
       return source || '—'
+    }
+
+    function providerText(entry, tt) {
+      if (entry.kind !== 'tts') return '—'
+      const name = entry.provider === 'edge' ? tt('edge') : (entry.provider === 'deepseek' ? tt('deepseek') : '—')
+      const lang = entry.language ? ` ${entry.language.toUpperCase()}` : ''
+      const quality = qualityText(entry.quality, tt)
+      const failed = entry.fallbackFrom ? ` (${tt('fallback')})` : ''
+      return `${name}${lang} · ${quality}${failed}`
     }
 
     function Icon({ size = 18, active = false }) {
@@ -456,6 +507,8 @@ window.__ModuleLoader__.load({
             text: t('sample'),
             voiceId: form?.voiceId || status?.settings?.voiceId || 'stella',
             ttsQuality: form?.ttsQuality || status?.settings?.ttsQuality || '64',
+            edgeEnabled: form?.edgeEnabled !== false,
+            edgeLanguage: form?.edgeLanguage || status?.settings?.edgeLanguage || 'auto',
           }),
         })
         const binary = atob(data.audioBase64)
@@ -487,6 +540,8 @@ window.__ModuleLoader__.load({
       const route = status?.route
       const keyState = status?.key
       const settings = form || status?.settings || {}
+      const edge = status?.edge
+      const mcp = status?.mcp
 
       const header = h('div', { className: 'dss-head' },
         h('div', null,
@@ -548,7 +603,7 @@ window.__ModuleLoader__.load({
               h('span', { className: 'dss-cell', 'data-label': t('chars') }, entry.textChars || 0),
               h('span', { className: 'dss-cell', 'data-label': t('tokens') }, entry.tokensEstimate || 0),
               h('span', { className: 'dss-cell', 'data-label': t('latency') }, `${entry.latencyMs || 0} ms`),
-              h('span', { className: 'dss-cell', 'data-label': t('quality') }, entry.kind === 'tts' ? qualityText(entry.quality, t) : '—'),
+              h('span', { className: 'dss-cell', 'data-label': t('quality') }, providerText(entry, t)),
               h('span', { className: 'dss-cell', 'data-label': t('status') },
                 h('span', { className: 'dss-badge' },
                   h('span', { className: 'dss-dot', 'data-tone': entry.status === 'ok' ? 'ok' : (entry.status === 'error' ? 'error' : 'warn') }),
@@ -652,6 +707,29 @@ window.__ModuleLoader__.load({
             ['64', '96', '128', '160', '192', '256', 'dynamic'].map((value) => h('option', { key: value, value }, qualityText(value, t))),
             ),
           ),
+          h(Field, { label: t('edgeLanguage') },
+            h('select', {
+              className: 'dss-select', value: settings.edgeLanguage || 'auto',
+              onChange: (e) => setForm({ ...settings, edgeLanguage: e.target.value }),
+            },
+            h('option', { value: 'auto' }, t('edgeAuto')),
+            h('option', { value: 'ru' }, t('edgeRu')),
+            h('option', { value: 'en' }, t('edgeEn')),
+            ),
+          ),
+          h('label', { className: 'dss-check', style: { marginBottom: '14px' } },
+            h('input', {
+              type: 'checkbox', checked: settings.edgeEnabled !== false,
+              onChange: (e) => setForm({ ...settings, edgeEnabled: e.target.checked }),
+            }),
+            h('span', null,
+              h('strong', null, t('edgePrimary')),
+              h('span', { className: 'dss-hint' }, t('edgeHint')),
+            ),
+          ),
+          h('div', { className: 'dss-hint', style: { marginBottom: '14px' } },
+            'Клеопатра: ru-RU-SvetlanaNeural / en-US-AriaNeural · Македонский: ru-RU-DmitryNeural / en-US-GuyNeural',
+          ),
           h(Field, { label: t('maxChars') },
             h('input', {
               className: 'dss-input', type: 'number', min: 100, max: 9000,
@@ -680,6 +758,30 @@ window.__ModuleLoader__.load({
           h('div', { className: 'dss-inline', style: { marginTop: '14px' } },
             h('button', { className: 'dss-btn', 'data-kind': 'primary', type: 'button', onClick: saveForm, disabled: Boolean(busy) }, t('saveSettings')),
             h('button', { className: 'dss-btn', type: 'button', onClick: testVoice, disabled: Boolean(busy) }, busy === 'test' ? t('playing') : t('testVoice')),
+          ),
+        ),
+        h('div', { className: 'dss-card-section' },
+          h('h3', null, 'Edge TTS'),
+          h('div', { className: 'dss-inline' },
+            h('span', { className: 'dss-dot', 'data-tone': edge?.available ? 'ok' : 'error' }),
+            h('span', null, edge?.available ? t('edgeAvailable') : t('edgeMissing')),
+          ),
+          edge?.error ? h('div', { className: 'dss-err', style: { marginTop: '6px' } }, edge.error) : null,
+        ),
+        h('div', { className: 'dss-card-section' },
+          h('h3', null, t('mcpService')),
+          h('p', null, t('mcpEndpoint')),
+          h('div', { className: 'dss-inline' },
+            h('code', { className: 'dss-mono' }, 'http://127.0.0.1:3080/deepseek-speech/mcp'),
+            h('button', { className: 'dss-btn', 'data-kind': 'small', type: 'button', onClick: () => copyCommand('http://127.0.0.1:3080/deepseek-speech/mcp') }, t('copyEndpoint')),
+          ),
+          h('div', { className: 'dss-inline', style: { marginTop: '8px' } },
+            h('span', { className: 'dss-dot', 'data-tone': mcp?.available ? 'ok' : 'error' }),
+            h('span', null, mcp?.available ? t('mcpReady') : t('mcpMissing')),
+          ),
+          mcp?.error ? h('div', { className: 'dss-err', style: { marginTop: '6px' } }, mcp.error) : null,
+          h('div', { className: 'dss-hint', style: { marginTop: '8px' } },
+            `${t('mcpTools')}: transcribe_audio, synthesize_speech, speech_status, speech_stats, list_voices`,
           ),
         ),
         depsSection,
