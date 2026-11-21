@@ -1,0 +1,33 @@
+{
+  "name": "@local/dsh-deepseek-asr-provider",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "DeepSeek ASR provider for the built-in DSH Voice input",
+  "main": "./dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src/**/*.ts",
+    "cordis.patch.yml",
+    "README.md",
+    "package.json",
+    "dist/index.js",
+    "vite.config.ts"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "scripts": {
+    "build": "../../node_modules/.bin/vite build --config vite.config.ts",
+    "check": "../../node_modules/.bin/tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test test/*.test.mjs"
+  },
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0"
+  }
+}

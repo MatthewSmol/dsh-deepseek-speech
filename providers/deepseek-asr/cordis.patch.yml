@@ -1,0 +1,9 @@
+- insert:
+    - id: deepseek-asr
+      name: "@local/dsh-deepseek-asr-provider"
+      config:
+        apiKeyEnv: DEEPSEEK_API_KEY
+        baseUrl: https://api.deepseek.com
+        providerId: deepseek-asr
+        timeoutMs: 120000
+        maxAudioSeconds: 600

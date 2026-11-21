@@ -191,6 +191,7 @@ The Vue client is built by Vite as a minified IIFE (`vite.config.ts`); Vue is bu
 - `src/client.ts` — React slot bridge and icons (DSH requires a React element in slots).
 - `src/vue/SpeechApp.ts` — Vue 3 root for the sidebar and settings; template + composition API.
 - `src/locales.ts` — shared EN/RU dictionaries.
+- `providers/deepseek-asr/` — host-only DeepSeek ASR provider for the built-in experimental Voice input; built by Vite/minified.
 - `dist/` — generated JavaScript committed for DSH Git installs.
 - `client.js`/`index.js` — generated compatibility entries for DSH's cached loader; do not edit by hand.
 
@@ -386,5 +387,6 @@ Vue-клиент собирается Vite как минифицированны
 - `src/client.ts` — React-мост слотов и иконки (DSH требует React-элемент в слотах).
 - `src/vue/SpeechApp.ts` — Vue 3-корень сайдбара и настроек; template + Composition API.
 - `src/locales.ts` — общие словари EN/RU.
+- `providers/deepseek-asr/` — host-only провайдер DeepSeek ASR для встроенного экспериментального Voice input; собирается Vite с минификацией.
 - `dist/` — сгенерированный JavaScript, закоммичен для Git-установки DSH.
 - `client.js`/`index.js` — сгенерированные compatibility-точки для кэшированного загрузчика DSH; вручную не редактировать.
