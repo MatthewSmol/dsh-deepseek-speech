@@ -390,3 +390,16 @@ Vue-клиент собирается Vite как минифицированны
 - `providers/deepseek-asr/` — host-only провайдер DeepSeek ASR для встроенного экспериментального Voice input; собирается Vite с минификацией.
 - `dist/` — сгенерированный JavaScript, закоммичен для Git-установки DSH.
 - `client.js`/`index.js` — сгенерированные compatibility-точки для кэшированного загрузчика DSH; вручную не редактировать.
+
+## Поддержка проекта
+
+Плагин бесплатный. Если он сэкономил вам время — можно поддержать разработку.
+
+| Сеть | Адрес |
+| --- | --- |
+| BTC | `bc1qmvw20wke93dtnf0hzzuqlg0fxkgxfxsnsz9xe7` |
+| ETH | `0x6888d4d2Bbc1776432AA32e02f50DdBeFDeE31Af` |
+| SOL | `AXAMj68npvibHCg1hNqX7b51iGTeQqKuMeaQY6asmoXL` |
+| GRAM | `UQAH2_xVEAa2AkTfvZ5f5c_kLwJ7JflcEMgcKb4rWucC41q5` |
+| ADA | `addr1q9lclrf04dvdfnv9n2u0nxf3ps4lwsuc0ptmuha4nk5cnxq0w5zns4f6a2qjrdnaklkgxdgmhy7tqeg99ut4enzkx84s08dqty` |
+| TRX | `TCrfaBYqi4ar7n2FwrtvxT2exvbbYcToNq` |
